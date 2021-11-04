@@ -468,13 +468,11 @@ inline mozilla::Tuple<size_t, size_t> ConvertUtf16toUtf8Partial(
  */
 inline size_t ConvertUtf16toUtf8(mozilla::Span<const char16_t> aSource,
                                  mozilla::Span<char> aDest) {
-  size_t srcLen = aSource.Length();
-  size_t dstLen = aDest.Length();
-  MOZ_ASSERT(dstLen >= srcLen * 3);
+  MOZ_ASSERT(aDest.Length() >= aSource.Length() * 3);
   size_t read;
   size_t written;
   Tie(read, written) = ConvertUtf16toUtf8Partial(aSource, aDest);
-  MOZ_ASSERT(read == srcLen);
+  MOZ_ASSERT(read == aSource.Length());
   return written;
 }
 

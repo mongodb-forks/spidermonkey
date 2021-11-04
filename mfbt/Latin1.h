@@ -454,8 +454,7 @@ inline void LossyConvertUtf16toLatin1(mozilla::Span<const char16_t> aSource,
   const char16_t* srcPtr = aSource.Elements();
   size_t srcLen = aSource.Length();
   char* dstPtr = aDest.Elements();
-  size_t dstLen = aDest.Length();
-  MOZ_ASSERT(dstLen >= srcLen);
+  MOZ_ASSERT(aDest.Length() >= srcLen);
   uint8_t* unsignedPtr = reinterpret_cast<uint8_t*>(dstPtr);
   const char16_t* end = srcPtr + srcLen;
   while (srcPtr < end) {
@@ -480,8 +479,7 @@ inline size_t LossyConvertUtf8toLatin1(mozilla::Span<const char> aSource,
   const char* srcPtr = aSource.Elements();
   size_t srcLen = aSource.Length();
   char* dstPtr = aDest.Elements();
-  size_t dstLen = aDest.Length();
-  MOZ_ASSERT(dstLen >= srcLen);
+  MOZ_ASSERT(aDest.Length() >= srcLen);
   uint8_t* unsignedPtr = reinterpret_cast<uint8_t*>(dstPtr);
   const char* end = srcPtr + srcLen;
   while (srcPtr < end) {
@@ -543,13 +541,11 @@ inline mozilla::Tuple<size_t, size_t> ConvertLatin1toUtf8Partial(
  */
 inline size_t ConvertLatin1toUtf8(mozilla::Span<const char> aSource,
                                   mozilla::Span<char> aDest) {
-  size_t srcLen = aSource.Length();
-  size_t dstLen = aDest.Length();
-  MOZ_ASSERT(dstLen >= srcLen * 2);
+  MOZ_ASSERT(aDest.Length() >= aSource.Length() * 2);
   size_t read;
   size_t written;
   Tie(read, written) = ConvertLatin1toUtf8Partial(aSource, aDest);
-  MOZ_ASSERT(read == srcLen);
+  MOZ_ASSERT(read == aSource.Length());
   return written;
 }
 
@@ -564,9 +560,8 @@ inline void ConvertLatin1toUtf16(mozilla::Span<const char> aSource,
   const char* srcPtr = aSource.Elements();
   size_t srcLen = aSource.Length();
   char16_t* dstPtr = aDest.Elements();
-  size_t dstLen = aDest.Length();
   // Avoid function call overhead when SIMD isn't used anyway
-  MOZ_ASSERT(dstLen >= srcLen);
+  MOZ_ASSERT(aDest.Length() >= srcLen);
   const uint8_t* unsignedPtr = reinterpret_cast<const uint8_t*>(srcPtr);
   const uint8_t* end = unsignedPtr + srcLen;
   while (unsignedPtr < end) {
