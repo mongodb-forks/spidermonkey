@@ -41,6 +41,14 @@
 #include "wasm/WasmTlsData.h"  // UniqueTlsData
 #include "wasm/WasmTypes.h"    // MutableHandleWasmInstanceObject, wasm::*
 
+#define DISABLE_WASM_TESTING 1
+
+#ifdef DISABLE_WASM_TESTING
+#  define WASM_HAS_SUPPORT(cx) false
+#else
+#  define WASM_HAS_SUPPORT(cx) wasm::HasSupport(cx)
+#endif
+
 class JSFreeOp;
 class JSObject;
 class JSTracer;

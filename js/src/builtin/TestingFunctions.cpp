@@ -810,8 +810,8 @@ static bool IsProxy(JSContext* cx, unsigned argc, Value* vp) {
 
 static bool WasmIsSupported(JSContext* cx, unsigned argc, Value* vp) {
   CallArgs args = CallArgsFromVp(argc, vp);
-  args.rval().setBoolean(wasm::HasSupport(cx) &&
-                         wasm::AnyCompilerAvailable(cx));
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  args.rval().setBoolean(wasmHasSupport && wasm::AnyCompilerAvailable(cx));
   return true;
 }
 
@@ -823,7 +823,8 @@ static bool WasmIsSupportedByHardware(JSContext* cx, unsigned argc, Value* vp) {
 
 static bool WasmDebuggingEnabled(JSContext* cx, unsigned argc, Value* vp) {
   CallArgs args = CallArgsFromVp(argc, vp);
-  args.rval().setBoolean(wasm::HasSupport(cx) && wasm::BaselineAvailable(cx));
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  args.rval().setBoolean(wasmHasSupport && wasm::BaselineAvailable(cx));
   return true;
 }
 
@@ -1022,7 +1023,8 @@ static bool WasmSimdAnalysis(JSContext* cx, unsigned argc, Value* vp) {
 #endif
 
 static bool WasmGlobalFromArrayBuffer(JSContext* cx, unsigned argc, Value* vp) {
-  if (!wasm::HasSupport(cx)) {
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  if (!wasmHasSupport) {
     JS_ReportErrorASCII(cx, "wasm support unavailable");
     return false;
   }
@@ -1134,7 +1136,8 @@ static bool ToLaneInterp(JSContext* cx, HandleValue v, LaneInterp* out) {
 }
 
 static bool WasmGlobalExtractLane(JSContext* cx, unsigned argc, Value* vp) {
-  if (!wasm::HasSupport(cx)) {
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  if (!wasmHasSupport) {
     JS_ReportErrorASCII(cx, "wasm support unavailable");
     return false;
   }
@@ -1206,7 +1209,8 @@ static bool WasmGlobalExtractLane(JSContext* cx, unsigned argc, Value* vp) {
 }
 
 static bool WasmGlobalsEqual(JSContext* cx, unsigned argc, Value* vp) {
-  if (!wasm::HasSupport(cx)) {
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  if (!wasmHasSupport) {
     JS_ReportErrorASCII(cx, "wasm support unavailable");
     return false;
   }
@@ -1346,7 +1350,8 @@ static bool ToNaNFlavor(JSContext* cx, HandleValue v, NaNFlavor* out) {
 }
 
 static bool WasmGlobalIsNaN(JSContext* cx, unsigned argc, Value* vp) {
-  if (!wasm::HasSupport(cx)) {
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  if (!wasmHasSupport) {
     JS_ReportErrorASCII(cx, "wasm support unavailable");
     return false;
   }
@@ -1390,7 +1395,8 @@ static bool WasmGlobalIsNaN(JSContext* cx, unsigned argc, Value* vp) {
 }
 
 static bool WasmGlobalToString(JSContext* cx, unsigned argc, Value* vp) {
-  if (!wasm::HasSupport(cx)) {
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  if (!wasmHasSupport) {
     JS_ReportErrorASCII(cx, "wasm support unavailable");
     return false;
   }
@@ -1450,7 +1456,8 @@ static bool WasmGlobalToString(JSContext* cx, unsigned argc, Value* vp) {
 }
 
 static bool WasmLosslessInvoke(JSContext* cx, unsigned argc, Value* vp) {
-  if (!wasm::HasSupport(cx)) {
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  if (!wasmHasSupport) {
     JS_ReportErrorASCII(cx, "wasm support unavailable");
     return false;
   }
@@ -1538,7 +1545,8 @@ static bool ConvertToTier(JSContext* cx, HandleValue value,
 }
 
 static bool WasmExtractCode(JSContext* cx, unsigned argc, Value* vp) {
-  if (!wasm::HasSupport(cx)) {
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  if (!wasmHasSupport) {
     JS_ReportErrorASCII(cx, "wasm support unavailable");
     return false;
   }
@@ -1807,7 +1815,8 @@ static bool WasmDisassembleCode(JSContext* cx, const wasm::Code& code,
 }
 
 static bool WasmDisassemble(JSContext* cx, unsigned argc, Value* vp) {
-  if (!wasm::HasSupport(cx)) {
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  if (!wasmHasSupport) {
     JS_ReportErrorASCII(cx, "wasm support unavailable");
     return false;
   }
