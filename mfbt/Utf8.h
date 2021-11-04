@@ -396,10 +396,6 @@ inline mozilla::Maybe<size_t> ConvertUtf8toUtf16WithoutReplacement(
 // Thread-local ICU error object for creating a UTF-8 converter.
 static thread_local UErrorCode threadLocalUConverterErr = U_ZERO_ERROR;
 
-// Thread-local instance of a UTF-8 converter
-static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
-    ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
-
 /**
  * Returns the index of the start of the first malformed byte
  * sequence or the length of the string if there are none.
@@ -436,6 +432,9 @@ inline mozilla::Tuple<size_t, size_t> ConvertUtf16toUtf8Partial(
   char* dstPtr = dstOrigPtr;
   const char* dstLimit = dstPtr + aDest.Length();
 
+  // Thread-local instance of a UTF-8 converter
+  static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
+      ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
   UConverter* utf8Conv = threadLocalUtf8Cnv.get();
 
   UErrorCode err = U_ZERO_ERROR;
@@ -497,6 +496,9 @@ inline size_t ConvertUtf8toUtf16(mozilla::Span<const char> aSource,
   char16_t* dstPtr = dstOrigPtr;
   const char16_t* dstLimit = dstPtr + aDest.Length();
 
+  // Thread-local instance of a UTF-8 converter
+  static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
+      ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
   UConverter* utf8Conv = threadLocalUtf8Cnv.get();
 
   UErrorCode err = U_ZERO_ERROR;
@@ -539,6 +541,9 @@ inline size_t UnsafeConvertValidUtf8toUtf16(mozilla::Span<const char> aSource,
 
   MOZ_ASSERT(dstLen >= srcLen);
 
+  // Thread-local instance of a UTF-8 converter
+  static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
+      ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
   UConverter* utf8Conv = threadLocalUtf8Cnv.get();
 
   UErrorCode err = U_ZERO_ERROR;
