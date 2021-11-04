@@ -25,6 +25,10 @@
 #include <stddef.h>  // for size_t
 #include <stdint.h>  // for uint8_t
 
+#if !MOZ_HAS_JSRUST()
+#  include "unicode/ucnv.h"  // for UConverter
+#endif
+
 #if MOZ_HAS_JSRUST()
 // Can't include mozilla/Encoding.h here.
 extern "C" {
@@ -383,6 +387,194 @@ inline mozilla::Maybe<size_t> ConvertUtf8toUtf16WithoutReplacement(
     return mozilla::Nothing();
   }
   return mozilla::Some(written);
+}
+
+#else
+
+// See Latin1.h for conversions between Latin1 and UTF-8.
+
+// Thread-local ICU error object for creating a UTF-8 converter.
+static thread_local UErrorCode threadLocalUConverterErr = U_ZERO_ERROR;
+
+// Thread-local instance of a UTF-8 converter
+static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
+    ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
+
+/**
+ * Returns the index of the start of the first malformed byte
+ * sequence or the length of the string if there are none.
+ */
+inline size_t Utf8ValidUpTo(mozilla::Span<const char> aString) {
+  return Utf8ValidUpToIndex(aString);
+}
+
+/**
+ * Converts potentially-invalid UTF-16 to UTF-8 replacing malformed byte
+ * sequences with the REPLACEMENT CHARACTER with potentially insufficient
+ * output space.
+ *
+ * Returns the number of code units read and the number of bytes written.
+ *
+ * If the output isn't large enough, not all input is consumed.
+ *
+ * The conversion is guaranteed to be complete if the length of aDest is
+ * at least the length of aSource times three.
+ *
+ * The output is always valid UTF-8 ending on scalar value boundary
+ * even in the case of partial conversion.
+ *
+ * The semantics of this function match the semantics of
+ * TextEncoder.encodeInto.
+ * https://encoding.spec.whatwg.org/#dom-textencoder-encodeinto
+ */
+inline mozilla::Tuple<size_t, size_t> ConvertUtf16toUtf8Partial(
+    mozilla::Span<const char16_t> aSource, mozilla::Span<char> aDest) {
+  const char16_t* srcOrigPtr = aSource.Elements();
+  const char16_t* srcPtr = srcOrigPtr;
+  const char16_t* srcLimit = srcPtr + aSource.Length();
+  char* dstOrigPtr = aDest.Elements();
+  char* dstPtr = dstOrigPtr;
+  const char* dstLimit = dstPtr + aDest.Length();
+
+  UConverter* utf8Conv = threadLocalUtf8Cnv.get();
+
+  UErrorCode err = U_ZERO_ERROR;
+  do {
+    ucnv_fromUnicode(utf8Conv, &dstPtr, dstLimit, &srcPtr, srcLimit, nullptr,
+                     true, &err);
+    if (U_FAILURE(err)) {
+      // we do not need to handle it, as the problematic character will be
+      // replaced with a REPLACEMENT CHARACTER.
+    }
+
+    if (MOZ_UNLIKELY(srcPtr < srcLimit && dstPtr < dstLimit)) {
+      ++srcPtr;
+      *dstPtr = '-';  // REPLACEMENT CHAR
+      ++dstPtr;
+    }
+  } while (srcPtr < srcLimit && dstPtr < dstLimit);
+
+  return mozilla::MakeTuple(static_cast<size_t>(srcPtr - srcOrigPtr),
+                            static_cast<size_t>(dstPtr - dstOrigPtr));
+}
+
+/**
+ * Converts potentially-invalid UTF-16 to UTF-8 replacing lone surrogates
+ * with the REPLACEMENT CHARACTER.
+ *
+ * The length of aDest must be at least the length of aSource times three.
+ *
+ * Returns the number of code units written.
+ */
+inline size_t ConvertUtf16toUtf8(mozilla::Span<const char16_t> aSource,
+                                 mozilla::Span<char> aDest) {
+  size_t srcLen = aSource.Length();
+  size_t dstLen = aDest.Length();
+  MOZ_ASSERT(dstLen >= srcLen * 3);
+  size_t read;
+  size_t written;
+  Tie(read, written) = ConvertUtf16toUtf8Partial(aSource, aDest);
+  MOZ_ASSERT(read == srcLen);
+  return written;
+}
+
+/**
+ * Converts potentially-invalid UTF-8 to UTF-16 replacing malformed byte
+ * sequences with the REPLACEMENT CHARACTER.
+ *
+ * Returns the number of code units written.
+ *
+ * The length of aDest must be at least one greater than the length of aSource
+ * even though the last slot isn't written to.
+ *
+ * If you know that the input is valid for sure, use
+ * UnsafeConvertValidUtf8toUtf16() instead.
+ */
+inline size_t ConvertUtf8toUtf16(mozilla::Span<const char> aSource,
+                                 mozilla::Span<char16_t> aDest) {
+  const char* srcOrigPtr = aSource.Elements();
+  const char* srcPtr = srcOrigPtr;
+  const char* srcLimit = srcPtr + aSource.Length();
+  char16_t* dstOrigPtr = aDest.Elements();
+  char16_t* dstPtr = dstOrigPtr;
+  const char16_t* dstLimit = dstPtr + aDest.Length();
+
+  UConverter* utf8Conv = threadLocalUtf8Cnv.get();
+
+  UErrorCode err = U_ZERO_ERROR;
+  do {
+    ucnv_toUnicode(utf8Conv, &dstPtr, dstLimit, &srcPtr, srcLimit, nullptr,
+                   true, &err);
+    if (U_FAILURE(err)) {
+      // we do not need to handle it, as the problematic character will be
+      // replaced with a REPLACEMENT CHARACTER.
+    }
+
+    if (MOZ_UNLIKELY(srcPtr < srcLimit && dstPtr < dstLimit)) {
+      ++srcPtr;
+      *dstPtr = '-';  // REPLACEMENT CHAR
+      ++dstPtr;
+    }
+  } while (srcPtr < srcLimit && dstPtr < dstLimit);
+
+  return static_cast<size_t>(dstPtr - dstOrigPtr);
+}
+
+/**
+ * Converts known-valid UTF-8 to UTF-16. If the input might be invalid,
+ * use ConvertUtf8toUtf16() or ConvertUtf8toUtf16WithoutReplacement() instead.
+ *
+ * Returns the number of code units written.
+ *
+ * The length of aDest must be at least the length of aSource.
+ */
+inline size_t UnsafeConvertValidUtf8toUtf16(mozilla::Span<const char> aSource,
+                                            mozilla::Span<char16_t> aDest) {
+  const char* srcOrigPtr = aSource.Elements();
+  const char* srcPtr = srcOrigPtr;
+  size_t srcLen = aSource.Length();
+  const char* srcLimit = srcPtr + srcLen;
+  char16_t* dstOrigPtr = aDest.Elements();
+  char16_t* dstPtr = dstOrigPtr;
+  size_t dstLen = aDest.Length();
+  const char16_t* dstLimit = dstPtr + dstLen;
+
+  MOZ_ASSERT(dstLen >= srcLen);
+
+  UConverter* utf8Conv = threadLocalUtf8Cnv.get();
+
+  UErrorCode err = U_ZERO_ERROR;
+
+  ucnv_toUnicode(utf8Conv, &dstPtr, dstLimit, &srcPtr, srcLimit, nullptr, true,
+                 &err);
+  MOZ_ASSERT(!U_FAILURE(err));
+
+  MOZ_ASSERT(srcPtr == srcLimit);
+
+  return static_cast<size_t>(dstPtr - dstOrigPtr);
+}
+
+/**
+ * Converts potentially-invalid UTF-8 to valid UTF-16 signaling on error.
+ *
+ * Returns the number of code units written or `mozilla::Nothing` if the
+ * input was invalid.
+ *
+ * The length of the destination buffer must be at least the length of the
+ * source buffer.
+ *
+ * When the input was invalid, some output may have been written.
+ *
+ * If you know that the input is valid for sure, use
+ * UnsafeConvertValidUtf8toUtf16() instead.
+ */
+inline mozilla::Maybe<size_t> ConvertUtf8toUtf16WithoutReplacement(
+    mozilla::Span<const char> aSource, mozilla::Span<char16_t> aDest) {
+  size_t utf8ValidUpToResult = Utf8ValidUpToIndex(aSource);
+  if (MOZ_UNLIKELY(utf8ValidUpToResult != aSource.Length())) {
+    return mozilla::Nothing();
+  }
+  return mozilla::Some(UnsafeConvertValidUtf8toUtf16(aSource, aDest));
 }
 
 #endif  // MOZ_HAS_JSRUST

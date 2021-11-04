@@ -12,7 +12,7 @@
 #include "mozilla/Assertions.h"
 #include "mozilla/Latin1.h"
 
-#ifdef MOZ_HAS_JSRUST
+#if MOZ_HAS_JSRUST()
 // Can't include mozilla/Encoding.h here.
 extern "C" {
 // Declared as uint8_t instead of char to match declaration in another header.
@@ -167,7 +167,105 @@ inline void ConvertAsciitoUtf16(mozilla::Span<const char> aSource,
   MOZ_ASSERT(IsAscii(aSource));
   ConvertLatin1toUtf16(aSource, aDest);
 }
+#else
+/**
+ * Returns the index of the first non-ASCII byte or
+ * the length of the string if there are none.
+ */
+inline size_t AsciiValidUpTo(mozilla::Span<const char> aString) {
+  size_t length = aString.Length();
+  const char* ptr = aString.Elements();
+  for (size_t i = 0; i < length; i++) {
+    value_type value = GetIteratorValue<const char*>(ptr + i);
+    if (value > 127) {
+      return i;
+    }
+  }
+  return length;
+}
 
+/**
+ * Returns the index of the first unpaired surrogate or
+ * the length of the string if there are none.
+ */
+inline size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
+  size_t length = aString.Length();
+  const char16_t* ptr = aString.Elements();
+  if (!length) {
+    return 0;
+  }
+  size_t offset = 0;
+  while (true) {
+    char16_t unit = ptr[offset];
+    size_t next = offset + 1;
+
+    char16_t unit_minus_surrogate_start = (unit - 0xD800);
+    if (unit_minus_surrogate_start > (0xDFFF - 0xD800)) {
+      // Not a surrogate
+      offset = next;
+      if (offset == length) {
+        return offset;
+      }
+      continue;
+    }
+
+    if (unit_minus_surrogate_start <= (0xDBFF - 0xD800)) {
+      // high surrogate
+      if (next < length) {
+        char16_t second = ptr[next];
+        char16_t second_minus_low_surrogate_start = (second - 0xDC00);
+        if (second_minus_low_surrogate_start <= (0xDFFF - 0xDC00)) {
+          // The next code unit is a low surrogate. Advance position.
+          offset = next + 1;
+          if (offset == length) {
+            return offset;
+          }
+          continue;
+        }
+        // The next code unit is not a low surrogate. Don't advance
+        // position and treat the high surrogate as unpaired.
+        // fall through
+      }
+      // Unpaired, fall through
+    }
+    // Unpaired surrogate
+    return offset;
+  }
+  return offset;
+}
+
+/**
+ * Replaces unpaired surrogates with U+FFFD in the argument.
+ *
+ * Note: If you have an nsAString, use EnsureUTF16Validity() from
+ * nsReadableUtils.h instead to avoid unsharing a valid shared
+ * string.
+ */
+inline void EnsureUtf16ValiditySpan(mozilla::Span<char16_t> aString) {
+  size_t length = aString.Length();
+  char16_t* ptr = aString.Elements();
+  size_t offset = 0;
+  while (true) {
+    offset += Utf16ValidUpTo(aString.Subspan(offset));
+    if (offset == length) {
+      return;
+    }
+    ptr[offset] = 0xFFFD;
+    offset += 1;
+  }
+}
+
+/**
+ * Convert ASCII to UTF-16. In debug builds, assert that the input is
+ * ASCII.
+ *
+ * The length of aDest must not be less than the length of aSource.
+ */
+inline void ConvertAsciitoUtf16(mozilla::Span<const char> aSource,
+                                mozilla::Span<char16_t> aDest) {
+  MOZ_ASSERT(IsAscii(aSource));
+  ConvertLatin1toUtf16(aSource, aDest);
+}
 #endif  // MOZ_HAS_JSRUST
 
 /**
