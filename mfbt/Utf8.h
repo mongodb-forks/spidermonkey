@@ -24,6 +24,7 @@
 #include <limits>    // for CHAR_BIT / std::numeric_limits
 #include <stddef.h>  // for size_t
 #include <stdint.h>  // for uint8_t
+#include <memory>    // for std::shared_ptr
 
 #if !MOZ_HAS_JSRUST()
 #  include "unicode/ucnv.h"  // for UConverter
