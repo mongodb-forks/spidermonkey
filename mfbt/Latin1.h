@@ -266,45 +266,12 @@ inline void ConvertLatin1toUtf16(mozilla::Span<const char> aSource,
 inline bool IsUtf16Latin1(mozilla::Span<const char16_t> aString) {
   size_t length = aString.Length();
   const char16_t* ptr = aString.Elements();
-  char16_t accu = 0;
   for (size_t i = 0; i < length; i++) {
-    accu |= ptr[i];
+    if(!(ptr[i] < 0x100)) {
+      return false;
+    }
   }
-  return accu < 0x100;
-}
-
-typedef unsigned value_type;
-
-template <typename Iterator>
-inline size_t GetIteratorLength(Iterator p) {
-  unsigned char c = static_cast<unsigned char>(*p);
-  if (c < 0x80)
-    return 1;
-  else if (!(c & 0x20))
-    return 2;
-  else if (!(c & 0x10))
-    return 3;
-  else if (!(c & 0x08))
-    return 4;
-  else if (!(c & 0x04))
-    return 5;
-  else
-    return 6;
-}
-
-template <typename Iterator>
-inline value_type GetIteratorValue(Iterator p) {
-  size_t len = GetIteratorLength(p);
-
-  if (len == 1) return *p;
-
-  value_type res = static_cast<unsigned char>(*p & (0xff >> (len + 1)))
-                   << ((len - 1) * 6);
-
-  for (--len; len; --len)
-    res |= (static_cast<unsigned char>(*(++p)) - 0x80) << ((len - 1) * 6);
-
-  return res;
+  return true;
 }
 
 /**
@@ -318,10 +285,16 @@ inline value_type GetIteratorValue(Iterator p) {
 inline size_t UnsafeValidUtf8Lati1UpTo(mozilla::Span<const char> aString) {
   size_t length = aString.Length();
   const char* ptr = aString.Elements();
-  for (size_t i = 0; i < length; i++) {
-    value_type value = GetIteratorValue<const char*>(ptr + i);
-    if (value > 0xff) {
+  for (size_t i = 0; i < length; ++i) {
+    const uint8_t value = *(ptr+i);
+    if (value <= 127) {
+      continue;
+    }
+    if(value > 0xC3) {
       return i;
+    } else {
+      // skip the second byte of the current Latin1 character
+      ++i;
     }
   }
   return length;
@@ -464,6 +437,42 @@ inline void LossyConvertUtf16toLatin1(mozilla::Span<const char16_t> aSource,
   }
 }
 
+template <typename Iterator>
+inline size_t GetIteratorLength(Iterator p) {
+  unsigned char c = static_cast<unsigned char>(*p);
+  size_t res = 6;
+  if (c < 0x80)
+    res = 1;
+  else if (!(c & 0x20))
+    res = 2;
+  else if (!(c & 0x10))
+    res = 3;
+  else if (!(c & 0x08))
+    res = 4;
+  else if (!(c & 0x04))
+    res = 5;
+  else
+    res = 6;
+  return res;
+}
+
+template <typename Iterator>
+inline uint32_t GetIteratorValue(Iterator& p, Iterator ptrEnd) {
+  size_t utf8CharLen = GetIteratorLength(p);
+
+  if (utf8CharLen == 1) {
+    return *(p++);
+  }
+  uint32_t res = static_cast<unsigned char>(*(p++) & (0xff >> (utf8CharLen + 1)))
+                   << ((utf8CharLen - 1) * 6);
+
+  for (--utf8CharLen; utf8CharLen && p < ptrEnd; --utf8CharLen) {
+    res |= (static_cast<unsigned char>(*(p++)) - 0x80) << ((utf8CharLen - 1) * 6);
+  }
+
+  return res;
+}
+
 /**
  * If all the code points in the input are below U+0100, converts to Latin1,
  * i.e. unsigned byte value is Unicode scalar value. If there are code points
@@ -482,9 +491,8 @@ inline size_t LossyConvertUtf8toLatin1(mozilla::Span<const char> aSource,
   MOZ_ASSERT(aDest.Length() >= srcLen);
   uint8_t* unsignedPtr = reinterpret_cast<uint8_t*>(dstPtr);
   const char* end = srcPtr + srcLen;
-  while (srcPtr < end) {
-    *unsignedPtr = static_cast<uint8_t>(*srcPtr);
-    ++srcPtr;
+  while(srcPtr < end) {
+    *unsignedPtr = GetIteratorValue<const char*>(srcPtr, end);
     ++unsignedPtr;
   }
   return unsignedPtr - reinterpret_cast<uint8_t*>(dstPtr);
@@ -520,9 +528,15 @@ inline mozilla::Tuple<size_t, size_t> ConvertLatin1toUtf8Partial(
   const uint8_t* srcEnd = unsignedSrcPtr + srcLen;
   const uint8_t* dstEnd = unsignedDstPtr + dstLen;
   while (unsignedSrcPtr < srcEnd && unsignedDstPtr < dstEnd) {
-    *unsignedDstPtr = *unsignedSrcPtr;
-    ++unsignedSrcPtr;
-    ++unsignedDstPtr;
+    if(*unsignedSrcPtr <= 127) {
+      *(unsignedDstPtr++) = *(unsignedSrcPtr++);
+    } else if(unsignedDstPtr + 1 < dstEnd) {
+      uint8_t nonAscii = *(unsignedSrcPtr++);
+      *(unsignedDstPtr++) = (nonAscii >> 6) | 0xC0;
+      *(unsignedDstPtr++) = (nonAscii & 0x3F) | 0x80;
+    } else {
+      break;
+    }
   }
   return mozilla::MakeTuple(
       static_cast<size_t>(reinterpret_cast<const char*>(unsignedSrcPtr) -

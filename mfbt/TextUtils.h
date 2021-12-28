@@ -176,7 +176,7 @@ inline size_t AsciiValidUpTo(mozilla::Span<const char> aString) {
   size_t length = aString.Length();
   const char* ptr = aString.Elements();
   for (size_t i = 0; i < length; i++) {
-    value_type value = GetIteratorValue<const char*>(ptr + i);
+    const uint8_t value = *(ptr+i);
     if (value > 127) {
       return i;
     }
