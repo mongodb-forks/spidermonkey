@@ -316,10 +316,8 @@ inline size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
   size_t i = 0;
   while (i < length) {
     const unsigned char* bytes = (const unsigned char*)string + i;
-    if ((  // ASCII
-           // use bytes[0] <= 0x7F to allow ASCII control characters
-            bytes[0] == 0x09 || bytes[0] == 0x0A || bytes[0] == 0x0D ||
-            (0x20 <= bytes[0] && bytes[0] <= 0x7E))) {
+    if (  // ASCII
+        bytes[0] <= 0x7F) {
       i += 1;
       continue;
     }
@@ -438,7 +436,7 @@ inline void LossyConvertUtf16toLatin1(mozilla::Span<const char16_t> aSource,
 }
 
 template <typename Iterator>
-inline size_t GetIteratorLength(Iterator p) {
+inline size_t _GetIteratorLength(Iterator p) {
   unsigned char c = static_cast<unsigned char>(*p);
   size_t res = 6;
   if (c < 0x80)
@@ -457,8 +455,8 @@ inline size_t GetIteratorLength(Iterator p) {
 }
 
 template <typename Iterator>
-inline uint32_t GetIteratorValue(Iterator& p, Iterator ptrEnd) {
-  size_t utf8CharLen = GetIteratorLength(p);
+inline uint32_t _GetIteratorValue(Iterator& p, Iterator ptrEnd) {
+  size_t utf8CharLen = _GetIteratorLength(p);
 
   if (utf8CharLen == 1) {
     return *(p++);
@@ -492,7 +490,7 @@ inline size_t LossyConvertUtf8toLatin1(mozilla::Span<const char> aSource,
   uint8_t* unsignedPtr = reinterpret_cast<uint8_t*>(dstPtr);
   const char* end = srcPtr + srcLen;
   while(srcPtr < end) {
-    *unsignedPtr = GetIteratorValue<const char*>(srcPtr, end);
+    *unsignedPtr = _GetIteratorValue<const char*>(srcPtr, end);
     ++unsignedPtr;
   }
   return unsignedPtr - reinterpret_cast<uint8_t*>(dstPtr);
@@ -584,7 +582,7 @@ inline void ConvertLatin1toUtf16(mozilla::Span<const char> aSource,
     ++dstPtr;
   }
 }
-#endif
+#endif // MOZ_HAS_JSRUST()
 
 };  // namespace mozilla
 

@@ -394,9 +394,6 @@ inline mozilla::Maybe<size_t> ConvertUtf8toUtf16WithoutReplacement(
 
 // See Latin1.h for conversions between Latin1 and UTF-8.
 
-// Thread-local ICU error object for creating a UTF-8 converter.
-static thread_local UErrorCode threadLocalUConverterErr = U_ZERO_ERROR;
-
 /**
  * Returns the index of the start of the first malformed byte
  * sequence or the length of the string if there are none.
@@ -424,6 +421,10 @@ inline size_t Utf8ValidUpTo(mozilla::Span<const char> aString) {
  * TextEncoder.encodeInto.
  * https://encoding.spec.whatwg.org/#dom-textencoder-encodeinto
  */
+#  define SINGLE_BYTE_REPLACEMENT_CHAR "?"
+#  define DOUBLE_BYTE_REPLACEMENT_CHAR "\u00BF"
+#  define TRIPLE_BYTE_REPLACEMENT_CHAR "\uFFFD"
+
 inline mozilla::Tuple<size_t, size_t> ConvertUtf16toUtf8Partial(
     mozilla::Span<const char16_t> aSource, mozilla::Span<char> aDest) {
   const char16_t* srcOrigPtr = aSource.Elements();
@@ -434,25 +435,63 @@ inline mozilla::Tuple<size_t, size_t> ConvertUtf16toUtf8Partial(
   const char* dstLimit = dstPtr + aDest.Length();
 
   // Thread-local instance of a UTF-8 converter
+  static thread_local UErrorCode threadLocalUConverterErr = U_ZERO_ERROR;
   static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
       ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
   UConverter* utf8Conv = threadLocalUtf8Cnv.get();
+  if (MOZ_LIKELY(U_SUCCESS(threadLocalUConverterErr) && utf8Conv != NULL)) {
+    UErrorCode err = U_ZERO_ERROR;
+    do {
+      ucnv_fromUnicode(utf8Conv, &dstPtr, dstLimit, &srcPtr, srcLimit, nullptr,
+                       true, &err);
+      ucnv_reset(utf8Conv); /* ucnv_fromUnicode is a stateful operation */
+      if (MOZ_UNLIKELY(U_FAILURE(err))) {
+        if (err == U_BUFFER_OVERFLOW_ERROR) {
+          const size_t firstInvalid =
+              Utf8ValidUpToIndex(Span(dstOrigPtr, dstPtr));
+          MOZ_ASSERT(static_cast<size_t>(srcPtr - srcOrigPtr) >= 0);
+          MOZ_ASSERT(static_cast<size_t>(dstLimit - dstOrigPtr) >=
+                     firstInvalid);
+          const size_t incorrectCharLen =
+              static_cast<size_t>(dstLimit - dstOrigPtr) - firstInvalid;
+          char* ptr = dstOrigPtr + firstInvalid;
+          switch (incorrectCharLen) {
+            case 3:
+              // TRIPLE_BYTE_REPLACEMENT_CHAR
+              *ptr++ = 0xEF;
+              *ptr++ = 0xBF;
+              *ptr++ = 0xBD;
+              break;
+            case 2:
+              // DOUBLE_BYTE_REPLACEMENT_CHAR
+              *ptr++ = 0xC2;
+              *ptr++ = 0xBF;
+              break;
+            case 1:
+              // SINGLE_BYTE_REPLACEMENT_CHAR
+            default:
+              for (; ptr < dstLimit; ++ptr) {
+                *ptr = '?';  // REPLACEMENT CHAR
+              }
+              break;
+            case 0:
+              break;
+          }
+          return mozilla::MakeTuple(static_cast<size_t>(srcPtr - srcOrigPtr),
+                                    static_cast<size_t>(dstPtr - dstOrigPtr));
+        } else {
+          // We do not need to handle it, as the problematic character will be
+          // replaced with a REPLACEMENT CHARACTER.
+        }
+      }
 
-  UErrorCode err = U_ZERO_ERROR;
-  do {
-    ucnv_fromUnicode(utf8Conv, &dstPtr, dstLimit, &srcPtr, srcLimit, nullptr,
-                     true, &err);
-    if (U_FAILURE(err)) {
-      // we do not need to handle it, as the problematic character will be
-      // replaced with a REPLACEMENT CHARACTER.
-    }
-
-    if (MOZ_UNLIKELY(srcPtr < srcLimit && dstPtr < dstLimit)) {
-      ++srcPtr;
-      *dstPtr = '-';  // REPLACEMENT CHAR
-      ++dstPtr;
-    }
-  } while (srcPtr < srcLimit && dstPtr < dstLimit);
+      if (MOZ_UNLIKELY(srcPtr < srcLimit && dstPtr < dstLimit)) {
+        ++srcPtr;
+        *dstPtr = '?';  // REPLACEMENT CHAR
+        ++dstPtr;
+      }
+    } while (srcPtr < srcLimit && dstPtr < dstLimit);
+  }
 
   return mozilla::MakeTuple(static_cast<size_t>(srcPtr - srcOrigPtr),
                             static_cast<size_t>(dstPtr - dstOrigPtr));
@@ -490,6 +529,8 @@ inline size_t ConvertUtf16toUtf8(mozilla::Span<const char16_t> aSource,
  */
 inline size_t ConvertUtf8toUtf16(mozilla::Span<const char> aSource,
                                  mozilla::Span<char16_t> aDest) {
+  MOZ_ASSERT(aDest.Length() > aSource.Length());
+
   const char* srcOrigPtr = aSource.Elements();
   const char* srcPtr = srcOrigPtr;
   const char* srcLimit = srcPtr + aSource.Length();
@@ -498,26 +539,28 @@ inline size_t ConvertUtf8toUtf16(mozilla::Span<const char> aSource,
   const char16_t* dstLimit = dstPtr + aDest.Length();
 
   // Thread-local instance of a UTF-8 converter
+  static thread_local UErrorCode threadLocalUConverterErr = U_ZERO_ERROR;
   static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
       ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
   UConverter* utf8Conv = threadLocalUtf8Cnv.get();
 
-  UErrorCode err = U_ZERO_ERROR;
-  do {
-    ucnv_toUnicode(utf8Conv, &dstPtr, dstLimit, &srcPtr, srcLimit, nullptr,
-                   true, &err);
-    if (U_FAILURE(err)) {
-      // we do not need to handle it, as the problematic character will be
-      // replaced with a REPLACEMENT CHARACTER.
-    }
+  if (MOZ_LIKELY(U_SUCCESS(threadLocalUConverterErr) && utf8Conv != NULL)) {
+    UErrorCode err = U_ZERO_ERROR;
+    do {
+      ucnv_toUnicode(utf8Conv, &dstPtr, dstLimit, &srcPtr, srcLimit, nullptr,
+                     true, &err);
+      if (MOZ_UNLIKELY(U_FAILURE(err))) {
+        // we do not need to handle it, as the problematic character will be
+        // replaced with a REPLACEMENT CHARACTER.
+      }
 
-    if (MOZ_UNLIKELY(srcPtr < srcLimit && dstPtr < dstLimit)) {
-      ++srcPtr;
-      *dstPtr = '-';  // REPLACEMENT CHAR
-      ++dstPtr;
-    }
-  } while (srcPtr < srcLimit && dstPtr < dstLimit);
-
+      if (MOZ_UNLIKELY(srcPtr < srcLimit && dstPtr < dstLimit)) {
+        ++srcPtr;
+        *dstPtr = '?';  // REPLACEMENT CHAR
+        ++dstPtr;
+      }
+    } while (srcPtr < srcLimit && dstPtr < dstLimit);
+  }
   return static_cast<size_t>(dstPtr - dstOrigPtr);
 }
 
@@ -543,17 +586,20 @@ inline size_t UnsafeConvertValidUtf8toUtf16(mozilla::Span<const char> aSource,
   MOZ_ASSERT(dstLen >= srcLen);
 
   // Thread-local instance of a UTF-8 converter
+  static thread_local UErrorCode threadLocalUConverterErr = U_ZERO_ERROR;
   static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
       ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
   UConverter* utf8Conv = threadLocalUtf8Cnv.get();
 
-  UErrorCode err = U_ZERO_ERROR;
+  if (MOZ_LIKELY(U_SUCCESS(threadLocalUConverterErr) && utf8Conv != NULL)) {
+    UErrorCode err = U_ZERO_ERROR;
 
-  ucnv_toUnicode(utf8Conv, &dstPtr, dstLimit, &srcPtr, srcLimit, nullptr, true,
-                 &err);
-  MOZ_ASSERT(!U_FAILURE(err));
+    ucnv_toUnicode(utf8Conv, &dstPtr, dstLimit, &srcPtr, srcLimit, nullptr,
+                   true, &err);
+    MOZ_ASSERT(!U_FAILURE(err));
 
-  MOZ_ASSERT(srcPtr == srcLimit);
+    MOZ_ASSERT(srcPtr == srcLimit);
+  }
 
   return static_cast<size_t>(dstPtr - dstOrigPtr);
 }
