@@ -43,6 +43,15 @@ constexpr bool IsAscii(char aChar) {
   return IsAscii(static_cast<unsigned char>(aChar));
 }
 
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811
+
+/** Returns true iff |aChar| is ASCII, i.e. in the range [0, 0x80). */
+constexpr bool IsAscii(char8_t aChar) {
+  return IsAscii(static_cast<unsigned char>(aChar));
+}
+
+#endif
+
 /** Returns true iff |aChar| is ASCII, i.e. in the range [0, 0x80). */
 constexpr bool IsAscii(char16_t aChar) { return aChar < 0x80; }
 
@@ -176,7 +185,7 @@ inline size_t AsciiValidUpTo(mozilla::Span<const char> aString) {
   size_t length = aString.Length();
   const char* ptr = aString.Elements();
   for (size_t i = 0; i < length; i++) {
-    const uint8_t value = *(ptr+i);
+    const uint8_t value = *(ptr + i);
     if (value > 127) {
       return i;
     }

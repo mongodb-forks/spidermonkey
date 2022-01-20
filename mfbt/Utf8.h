@@ -174,6 +174,13 @@ union Utf8Unit {
 
   explicit constexpr Utf8Unit(char aUnit) : mValue(aUnit) {}
 
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811
+
+  explicit constexpr Utf8Unit(char8_t aUnit)
+      : mValue(static_cast<char>(aUnit)) {}
+
+#endif
+
   explicit constexpr Utf8Unit(unsigned char aUnit)
       : mValue(static_cast<char>(aUnit)) {
     // Per the above comment, the prior cast is integral conversion with
@@ -256,7 +263,8 @@ constexpr bool IsAscii(Utf8Unit aUnit) {
  *
  * The string *may* contain U+0000 NULL code points.
  */
-inline bool IsUtf8(mozilla::Span<const char> aString) {
+template <typename T>
+inline bool IsUtf8Impl(mozilla::Span<const T> aString) {
 #if MOZ_HAS_JSRUST()
   size_t length = aString.Length();
   const uint8_t* ptr = reinterpret_cast<const uint8_t*>(aString.Elements());
@@ -278,6 +286,17 @@ end:
   return detail::IsValidUtf8(aString.Elements(), aString.Length());
 #endif
 }
+
+inline bool IsUtf8(mozilla::Span<const char> aString) {
+  return IsUtf8Impl(aString);
+}
+
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811
+
+inline bool IsUtf8(mozilla::Span<const char8_t> aString) {
+  return IsUtf8Impl(aString);
+}
+#endif
 
 #if MOZ_HAS_JSRUST()
 
