@@ -31,9 +31,11 @@ using namespace js::wasm;
 extern "C" {
 bool wasm_text_to_binary(const char16_t* text, size_t text_len,
                          uint8_t** out_bytes, size_t* out_bytes_len,
-                         uint8_t** out_error, size_t* out_error_len);
+                         uint8_t** out_error, size_t* out_error_len) {
+  return 0;
+}
 void wasm_code_offsets(const uint8_t* bytes, size_t bytes_len,
-                       uint32_t** out_offsets, size_t* out_offset_len);
+                       uint32_t** out_offsets, size_t* out_offset_len) {}
 }  // extern "C"
 
 bool wasm::TextToBinary(const char16_t* text, size_t textLen, Bytes* bytes,

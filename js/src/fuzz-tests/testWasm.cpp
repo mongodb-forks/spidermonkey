@@ -29,7 +29,8 @@ extern JS::PersistentRootedObject gGlobal;
 extern JSContext* gCx;
 
 static int testWasmInit(int* argc, char*** argv) {
-  if (!wasm::HasSupport(gCx) ||
+  bool wasmHasSupport = WASM_HAS_SUPPORT(gCx);
+  if (!wasmHasSupport ||
       !GlobalObject::getOrCreateConstructor(gCx, JSProto_WebAssembly)) {
     MOZ_CRASH("Failed to initialize wasm support");
   }
