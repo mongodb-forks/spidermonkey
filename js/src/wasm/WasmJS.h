@@ -41,6 +41,16 @@
 #include "wasm/WasmTlsData.h"  // UniqueTlsData
 #include "wasm/WasmTypes.h"    // MutableHandleWasmInstanceObject, wasm::*
 
+// WASM testing is completely disabled using the defined value below.
+// You need to change this value and re-compile the code-base to re-enable WASM testing.
+#define DISABLE_WASM_TESTING 1
+
+#ifdef DISABLE_WASM_TESTING
+#  define WASM_HAS_SUPPORT(cx) false
+#else
+#  define WASM_HAS_SUPPORT(cx) wasm::HasSupport(cx)
+#endif
+
 class JSFreeOp;
 class JSObject;
 class JSTracer;

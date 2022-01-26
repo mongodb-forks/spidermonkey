@@ -40,8 +40,8 @@ BEGIN_REUSABLE_TEST(testAtomicLockFree8) {
 
   // We must have lock-free 8-byte atomics on every platform where we support
   // wasm, but we don't care otherwise.
-
-  CHECK(!wasm::HasSupport(cx) || jit::AtomicOperations::isLockfree8());
+  bool wasmHasSupport = WASM_HAS_SUPPORT(cx);
+  CHECK(!wasmHasSupport || jit::AtomicOperations::isLockfree8());
   return true;
 }
 END_TEST(testAtomicLockFree8)
