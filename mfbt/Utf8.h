@@ -296,6 +296,7 @@ inline bool IsUtf8(mozilla::Span<const char> aString) {
 inline bool IsUtf8(mozilla::Span<const char8_t> aString) {
   return IsUtf8Impl(aString);
 }
+
 #endif
 
 #if MOZ_HAS_JSRUST()
