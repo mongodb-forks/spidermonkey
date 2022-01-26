@@ -54,7 +54,6 @@ set_config("JS_ENABLE_SMOOSH", enable_smoosh)
 set_define("JS_ENABLE_SMOOSH", enable_smoosh)
 
 include("../build/moz.configure/nspr.configure", when="--enable-compile-environment")
-# include("../build/moz.configure/rust.configure", when="--enable-compile-environment")
 include("../build/moz.configure/bindgen.configure", when="--enable-compile-environment")
 
 set_config("JS_STANDALONE", js_standalone)
@@ -135,7 +134,6 @@ set_define("MOZ_STATIC_JS", static_js)
 
 option(env="NO_RUST_PANIC_HOOK", when=js_standalone, help="Disable rust panic hook")
 
-set_define("NO_RUST_PANIC_HOOK1", True, when="NO_RUST_PANIC_HOOK")
 set_define("NO_RUST_PANIC_HOOK", True)
 
 
@@ -978,7 +976,7 @@ set_config("JS_HAS_INTL_API", True, when="--with-intl-api")
 set_define("JS_HAS_INTL_API", True, when="--with-intl-api")
 
 
-@depends(check_build_environment)
+@depends(check_build_environment, when="--with-intl-api")
 @imports(_from="__builtin__", _import="open")
 @imports(_from="__builtin__", _import="ValueError")
 def icu_version(build_env):
