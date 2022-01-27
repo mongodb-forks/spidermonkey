@@ -32,8 +32,8 @@ class FormatBuffer {
 
   // Allow move constructors, but not copy constructors, as this class owns a
   // js::Vector.
-  FormatBuffer(FormatBuffer&& other) = default;
-  FormatBuffer& operator=(FormatBuffer&& other) = default;
+  FormatBuffer(FormatBuffer&& other) noexcept = default;
+  FormatBuffer& operator=(FormatBuffer&& other) noexcept = default;
 
   explicit FormatBuffer(JSContext* cx) : cx_(cx), buffer_(cx) {
     MOZ_ASSERT(cx);
