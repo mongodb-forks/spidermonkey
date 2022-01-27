@@ -225,9 +225,7 @@ struct Cell {
   inline TenuredChunk* chunk() const;
 
   // Cells are destroyed by the GC. Do not delete them directly.
-  void operator delete(void*) {
-    std::abort();
-  };
+  void operator delete(void*) { MOZ_CRASH("This path is unreachable."); };
 } JS_HAZ_GC_THING;
 
 // A GC TenuredCell gets behaviors that are valid for things in the Tenured
