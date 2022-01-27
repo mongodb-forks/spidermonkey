@@ -167,7 +167,9 @@ inline void ConvertAsciitoUtf16(mozilla::Span<const char> aSource,
   MOZ_ASSERT(IsAscii(aSource));
   ConvertLatin1toUtf16(aSource, aDest);
 }
-#else
+
+#else // The code below is implemented based on the equivalent specification in `encoding_rs`.
+
 /**
  * Returns the index of the first non-ASCII byte or
  * the length of the string if there are none.
