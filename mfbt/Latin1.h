@@ -255,7 +255,7 @@ inline void ConvertLatin1toUtf16(mozilla::Span<const char> aSource,
   }
   encoding_mem_convert_latin1_to_utf16(srcPtr, srcLen, dstPtr, dstLen);
 }
-#else
+#else // The code below is implemented based on the equivalent specification in `encoding_rs`.
 
 /**
  * Returns |true| iff |aString| contains only Latin1 characters, that is,

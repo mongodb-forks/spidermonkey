@@ -410,7 +410,7 @@ inline mozilla::Maybe<size_t> ConvertUtf8toUtf16WithoutReplacement(
   return mozilla::Some(written);
 }
 
-#else
+#else // The code below is implemented based on the equivalent specification in `encoding_rs`.
 
 // See Latin1.h for conversions between Latin1 and UTF-8.
 

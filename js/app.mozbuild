@@ -27,7 +27,7 @@ DIRS += [
     '/mozglue',
 ]
 
-#if CONFIG['JS_HAS_INTL_API']:
+# The 'icu' dependency is always required, as the implementation of encoding depends on it.
 DIRS += [
     '/config/external/icu',
 ]
