@@ -263,11 +263,9 @@ constexpr bool IsAscii(Utf8Unit aUnit) {
  *
  * The string *may* contain U+0000 NULL code points.
  */
-template <typename T>
-inline bool IsUtf8Impl(mozilla::Span<const T> aString) {
+namespace detail {
+inline bool IsUtf8(const uint8_t* ptr, size_t length) {
 #if MOZ_HAS_JSRUST()
-  size_t length = aString.Length();
-  const uint8_t* ptr = reinterpret_cast<const uint8_t*>(aString.Elements());
   // For short strings, the function call is a pessimization, and the SIMD
   // code won't have a chance to kick in anyway.
   if (length < 16) {
@@ -283,18 +281,21 @@ inline bool IsUtf8Impl(mozilla::Span<const T> aString) {
 end:
   return length == encoding_utf8_valid_up_to(ptr, length);
 #else
-  return detail::IsValidUtf8(aString.Elements(), aString.Length());
+  return detail::IsValidUtf8(ptr, length);
 #endif
 }
+}  // namespace detail
 
 inline bool IsUtf8(mozilla::Span<const char> aString) {
-  return IsUtf8Impl(aString);
+  return detail::IsUtf8(reinterpret_cast<const uint8_t*>(aString.Elements()),
+                        aString.Length());
 }
 
 #if defined(__cpp_char8_t) && __cpp_char8_t >= 201811
 
 inline bool IsUtf8(mozilla::Span<const char8_t> aString) {
-  return IsUtf8Impl(aString);
+  return detail::IsUtf8(reinterpret_cast<const uint8_t*>(aString.Elements()),
+                        aString.Length());
 }
 
 #endif
