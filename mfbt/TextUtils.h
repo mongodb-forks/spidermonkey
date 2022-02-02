@@ -168,7 +168,8 @@ inline void ConvertAsciitoUtf16(mozilla::Span<const char> aSource,
   ConvertLatin1toUtf16(aSource, aDest);
 }
 
-#else // The code below is implemented based on the equivalent specification in `encoding_rs`.
+#else  // The code below is implemented based on the equivalent specification in
+       // `encoding_rs`.
 
 /**
  * Returns the index of the first non-ASCII byte or
@@ -178,7 +179,7 @@ inline size_t AsciiValidUpTo(mozilla::Span<const char> aString) {
   size_t length = aString.Length();
   const char* ptr = aString.Elements();
   for (size_t i = 0; i < length; i++) {
-    const uint8_t value = *(ptr+i);
+    const uint8_t value = *(ptr + i);
     if (value > 127) {
       return i;
     }

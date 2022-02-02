@@ -255,7 +255,8 @@ inline void ConvertLatin1toUtf16(mozilla::Span<const char> aSource,
   }
   encoding_mem_convert_latin1_to_utf16(srcPtr, srcLen, dstPtr, dstLen);
 }
-#else // The code below is implemented based on the equivalent specification in `encoding_rs`.
+#else  // The code below is implemented based on the equivalent specification in
+       // `encoding_rs`.
 
 /**
  * Returns |true| iff |aString| contains only Latin1 characters, that is,
@@ -267,7 +268,7 @@ inline bool IsUtf16Latin1(mozilla::Span<const char16_t> aString) {
   size_t length = aString.Length();
   const char16_t* ptr = aString.Elements();
   for (size_t i = 0; i < length; i++) {
-    if(!(ptr[i] < 0x100)) {
+    if (!(ptr[i] < 0x100)) {
       return false;
     }
   }
@@ -286,11 +287,11 @@ inline size_t UnsafeValidUtf8Lati1UpTo(mozilla::Span<const char> aString) {
   size_t length = aString.Length();
   const char* ptr = aString.Elements();
   for (size_t i = 0; i < length; ++i) {
-    const uint8_t value = *(ptr+i);
+    const uint8_t value = *(ptr + i);
     if (value <= 127) {
       continue;
     }
-    if(value > 0xC3) {
+    if (value > 0xC3) {
       return i;
     } else {
       // skip the second byte of the current Latin1 character
@@ -461,11 +462,13 @@ inline uint32_t _GetIteratorValue(Iterator& p, Iterator ptrEnd) {
   if (utf8CharLen == 1) {
     return *(p++);
   }
-  uint32_t res = static_cast<unsigned char>(*(p++) & (0xff >> (utf8CharLen + 1)))
-                   << ((utf8CharLen - 1) * 6);
+  uint32_t res =
+      static_cast<unsigned char>(*(p++) & (0xff >> (utf8CharLen + 1)))
+      << ((utf8CharLen - 1) * 6);
 
   for (--utf8CharLen; utf8CharLen && p < ptrEnd; --utf8CharLen) {
-    res |= (static_cast<unsigned char>(*(p++)) - 0x80) << ((utf8CharLen - 1) * 6);
+    res |= (static_cast<unsigned char>(*(p++)) - 0x80)
+           << ((utf8CharLen - 1) * 6);
   }
 
   return res;
@@ -489,7 +492,7 @@ inline size_t LossyConvertUtf8toLatin1(mozilla::Span<const char> aSource,
   MOZ_ASSERT(aDest.Length() >= srcLen);
   uint8_t* unsignedPtr = reinterpret_cast<uint8_t*>(dstPtr);
   const char* end = srcPtr + srcLen;
-  while(srcPtr < end) {
+  while (srcPtr < end) {
     *unsignedPtr = _GetIteratorValue<const char*>(srcPtr, end);
     ++unsignedPtr;
   }
@@ -526,9 +529,9 @@ inline mozilla::Tuple<size_t, size_t> ConvertLatin1toUtf8Partial(
   const uint8_t* srcEnd = unsignedSrcPtr + srcLen;
   const uint8_t* dstEnd = unsignedDstPtr + dstLen;
   while (unsignedSrcPtr < srcEnd && unsignedDstPtr < dstEnd) {
-    if(*unsignedSrcPtr <= 127) {
+    if (*unsignedSrcPtr <= 127) {
       *(unsignedDstPtr++) = *(unsignedSrcPtr++);
-    } else if(unsignedDstPtr + 1 < dstEnd) {
+    } else if (unsignedDstPtr + 1 < dstEnd) {
       uint8_t nonAscii = *(unsignedSrcPtr++);
       *(unsignedDstPtr++) = (nonAscii >> 6) | 0xC0;
       *(unsignedDstPtr++) = (nonAscii & 0x3F) | 0x80;
@@ -582,7 +585,7 @@ inline void ConvertLatin1toUtf16(mozilla::Span<const char> aSource,
     ++dstPtr;
   }
 }
-#endif // MOZ_HAS_JSRUST()
+#endif  // MOZ_HAS_JSRUST()
 
 };  // namespace mozilla
 
