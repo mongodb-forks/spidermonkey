@@ -177,7 +177,7 @@ union Utf8Unit {
 #if defined(__cpp_char8_t) && __cpp_char8_t >= 201811
 
   explicit constexpr Utf8Unit(char8_t aUnit)
-      : mValue(static_cast<char>(aUnit)) {}
+      : Utf8Unit(static_cast<char>(aUnit)) {}
 
 #endif
 
