@@ -1113,9 +1113,9 @@ static void TestEnsureUtf16Validity() {
 }
 
 static void TestConvertAsciitoUtf16() {
-  static const size_t srcLen = 128;
+  static constexpr size_t srcLen = 128;
   static char src[srcLen];
-  static const size_t referenceLen = srcLen;
+  static constexpr size_t referenceLen = srcLen;
   static char16_t reference[referenceLen];
 
   for (size_t i = 0; i < srcLen; ++i) {
@@ -1123,7 +1123,7 @@ static void TestConvertAsciitoUtf16() {
     reference[i] = static_cast<char16_t>(i);
   }
 
-  static const size_t dstLen = srcLen;
+  static constexpr size_t dstLen = srcLen;
   char16_t dst[dstLen];
   memset(dst, 0, dstLen * sizeof(char16_t));
   ConvertAsciitoUtf16(Span(src, srcLen), Span(dst, dstLen));
