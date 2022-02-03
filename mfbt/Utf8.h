@@ -21,10 +21,11 @@
 #include "mozilla/Tuple.h"      // for mozilla::Tuple
 #include "mozilla/Types.h"      // for MFBT_API
 
-#include <limits>    // for CHAR_BIT / std::numeric_limits
-#include <stddef.h>  // for size_t
-#include <stdint.h>  // for uint8_t
-#include <memory>    // for std::shared_ptr
+#include <limits>      // for CHAR_BIT / std::numeric_limits
+#include <stddef.h>    // for size_t
+#include <stdint.h>    // for uint8_t
+#include <memory>      // for std::unique_ptr
+#include <functional>  // for std::function
 
 #if !MOZ_HAS_JSRUST()
 #  include "unicode/ucnv.h"  // for UConverter
@@ -437,8 +438,10 @@ inline mozilla::Tuple<size_t, size_t> ConvertUtf16toUtf8Partial(
 
   // Thread-local instance of a UTF-8 converter
   static thread_local UErrorCode threadLocalUConverterErr = U_ZERO_ERROR;
-  static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
-      ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
+  static thread_local std::unique_ptr<UConverter,
+                                      std::function<typeof(ucnv_close)> >
+      threadLocalUtf8Cnv(ucnv_open("UTF-8", &threadLocalUConverterErr),
+                         std::bind(&ucnv_close, std::placeholders::_1));
   UConverter* utf8Conv = threadLocalUtf8Cnv.get();
   if (MOZ_LIKELY(U_SUCCESS(threadLocalUConverterErr) && utf8Conv != NULL)) {
     UErrorCode err = U_ZERO_ERROR;
@@ -541,8 +544,10 @@ inline size_t ConvertUtf8toUtf16(mozilla::Span<const char> aSource,
 
   // Thread-local instance of a UTF-8 converter
   static thread_local UErrorCode threadLocalUConverterErr = U_ZERO_ERROR;
-  static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
-      ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
+  static thread_local std::unique_ptr<UConverter,
+                                      std::function<typeof(ucnv_close)> >
+      threadLocalUtf8Cnv(ucnv_open("UTF-8", &threadLocalUConverterErr),
+                         std::bind(&ucnv_close, std::placeholders::_1));
   UConverter* utf8Conv = threadLocalUtf8Cnv.get();
 
   if (MOZ_LIKELY(U_SUCCESS(threadLocalUConverterErr) && utf8Conv != NULL)) {
@@ -551,7 +556,7 @@ inline size_t ConvertUtf8toUtf16(mozilla::Span<const char> aSource,
       ucnv_toUnicode(utf8Conv, &dstPtr, dstLimit, &srcPtr, srcLimit, nullptr,
                      true, &err);
       if (MOZ_UNLIKELY(U_FAILURE(err))) {
-        // we do not need to handle it, as the problematic character will be
+        // We do not need to handle it, as the problematic character will be
         // replaced with a REPLACEMENT CHARACTER.
       }
 
@@ -588,8 +593,10 @@ inline size_t UnsafeConvertValidUtf8toUtf16(mozilla::Span<const char> aSource,
 
   // Thread-local instance of a UTF-8 converter
   static thread_local UErrorCode threadLocalUConverterErr = U_ZERO_ERROR;
-  static thread_local std::shared_ptr<UConverter> threadLocalUtf8Cnv(
-      ucnv_open("UTF-8", &threadLocalUConverterErr), ucnv_close);
+  static thread_local std::unique_ptr<UConverter,
+                                      std::function<typeof(ucnv_close)> >
+      threadLocalUtf8Cnv(ucnv_open("UTF-8", &threadLocalUConverterErr),
+                         std::bind(&ucnv_close, std::placeholders::_1));
   UConverter* utf8Conv = threadLocalUtf8Cnv.get();
 
   if (MOZ_LIKELY(U_SUCCESS(threadLocalUConverterErr) && utf8Conv != NULL)) {

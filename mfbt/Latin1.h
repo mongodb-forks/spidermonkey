@@ -288,7 +288,7 @@ inline size_t UnsafeValidUtf8Lati1UpTo(mozilla::Span<const char> aString) {
   const char* ptr = aString.Elements();
   for (size_t i = 0; i < length; ++i) {
     const uint8_t value = *(ptr + i);
-    if (value <= 127) {
+    if (value <= 0x7F) {
       continue;
     }
     if (value > 0xC3) {
@@ -299,7 +299,6 @@ inline size_t UnsafeValidUtf8Lati1UpTo(mozilla::Span<const char> aString) {
     }
   }
   return length;
-  // return encoding_mem_str_latin1_up_to(aString.Elements(), aString.Length());
 }
 
 /**
@@ -316,21 +315,22 @@ inline size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
 
   size_t i = 0;
   while (i < length) {
-    const unsigned char* bytes = (const unsigned char*)string + i;
+    const unsigned char* bytes =
+        reinterpret_cast<const unsigned char*>(string + i);
     if (  // ASCII
         bytes[0] <= 0x7F) {
       i += 1;
       continue;
     }
 
-    if (i + 1 < length && (  // non-overlong 2-byte
+    if (length - i > 1 && (  // non-overlong 2-byte
                               (0xC2 <= bytes[0] && bytes[0] <= 0xDF) &&
                               (0x80 <= bytes[1] && bytes[1] <= 0xBF))) {
       i += 2;
       continue;
     }
 
-    if (i + 2 < length &&
+    if (length - i > 2 &&
         ((  // excluding overlongs
              bytes[0] == 0xE0 && (0xA0 <= bytes[1] && bytes[1] <= 0xBF) &&
              (0x80 <= bytes[2] && bytes[2] <= 0xBF)) ||
@@ -346,7 +346,7 @@ inline size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
       continue;
     }
 
-    if (i + 3 < length &&
+    if (length - i > 3 &&
         ((  // planes 1-3
              bytes[0] == 0xF0 && (0x90 <= bytes[1] && bytes[1] <= 0xBF) &&
              (0x80 <= bytes[2] && bytes[2] <= 0xBF) &&
@@ -439,24 +439,24 @@ inline void LossyConvertUtf16toLatin1(mozilla::Span<const char16_t> aSource,
 template <typename Iterator>
 inline size_t _GetIteratorLength(Iterator p) {
   unsigned char c = static_cast<unsigned char>(*p);
-  size_t res = 6;
   if (c < 0x80)
-    res = 1;
+    return 1;
   else if (!(c & 0x20))
-    res = 2;
+    return 2;
   else if (!(c & 0x10))
-    res = 3;
+    return 3;
   else if (!(c & 0x08))
-    res = 4;
+    return 4;
   else if (!(c & 0x04))
-    res = 5;
+    return 5;
   else
-    res = 6;
-  return res;
+    return 6;
 }
 
 template <typename Iterator>
 inline uint32_t _GetIteratorValue(Iterator& p, Iterator ptrEnd) {
+  MOZ_ASSERT(p < ptrEnd);
+
   size_t utf8CharLen = _GetIteratorLength(p);
 
   if (utf8CharLen == 1) {
