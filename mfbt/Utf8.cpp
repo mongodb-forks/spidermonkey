@@ -39,6 +39,8 @@ MFBT_API bool mozilla::detail::IsValidUtf8(const void* aCodeUnits,
 }
 
 #if !MOZ_HAS_JSRUST()
+#  include <memory>          // for std::shared_ptr
+#  include "unicode/ucnv.h"  // for UConverter
 
 mozilla::Tuple<std::shared_ptr<UConverter>, UErrorCode> _getUConverter() {
   static thread_local UErrorCode uConverterErr = U_ZERO_ERROR;
@@ -117,6 +119,16 @@ mozilla::Tuple<size_t, size_t> mozilla::ConvertUtf16toUtf8Partial(
 
   return mozilla::MakeTuple(static_cast<size_t>(srcPtr - srcOrigPtr),
                             static_cast<size_t>(dstPtr - dstOrigPtr));
+}
+
+size_t mozilla::ConvertUtf16toUtf8(mozilla::Span<const char16_t> aSource,
+                                   mozilla::Span<char> aDest) {
+  MOZ_ASSERT(aDest.Length() >= aSource.Length() * 3);
+  size_t read;
+  size_t written;
+  Tie(read, written) = ConvertUtf16toUtf8Partial(aSource, aDest);
+  MOZ_ASSERT(read == aSource.Length());
+  return written;
 }
 
 size_t mozilla::ConvertUtf8toUtf16(mozilla::Span<const char> aSource,
