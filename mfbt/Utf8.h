@@ -24,11 +24,6 @@
 #include <limits>    // for CHAR_BIT / std::numeric_limits
 #include <stddef.h>  // for size_t
 #include <stdint.h>  // for uint8_t
-#include <memory>    // for std::unique_ptr
-
-#if !MOZ_HAS_JSRUST()
-#  include "unicode/ucnv.h"  // for UConverter
-#endif
 
 #if MOZ_HAS_JSRUST()
 // Can't include mozilla/Encoding.h here.
@@ -437,15 +432,8 @@ mozilla::Tuple<size_t, size_t> ConvertUtf16toUtf8Partial(
  *
  * Returns the number of code units written.
  */
-inline size_t ConvertUtf16toUtf8(mozilla::Span<const char16_t> aSource,
-                                 mozilla::Span<char> aDest) {
-  MOZ_ASSERT(aDest.Length() >= aSource.Length() * 3);
-  size_t read;
-  size_t written;
-  Tie(read, written) = ConvertUtf16toUtf8Partial(aSource, aDest);
-  MOZ_ASSERT(read == aSource.Length());
-  return written;
-}
+size_t ConvertUtf16toUtf8(mozilla::Span<const char16_t> aSource,
+                          mozilla::Span<char> aDest);
 
 /**
  * Converts potentially-invalid UTF-8 to UTF-16 replacing malformed byte
