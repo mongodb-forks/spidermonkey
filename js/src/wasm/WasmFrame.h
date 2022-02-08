@@ -225,6 +225,8 @@ class DebugFrame {
       uint32_t hasSpilledRefRegisterResult : MaxRegisterResults;
     };
     uint32_t allFlags;
+
+    constexpr Flags(uint32_t allFlags) : allFlags(allFlags) {}
   } flags_;
 
   // Avoid -Wunused-private-field warnings.
@@ -317,7 +319,7 @@ class DebugFrame {
   }
   static constexpr uint32_t hasSpilledRegisterRefResultBitMask(size_t n) {
     MOZ_ASSERT(n < MaxRegisterResults);
-    union Flags flags = {.allFlags = 0};
+    union Flags flags{0};
     flags.hasSpilledRefRegisterResult = 1 << n;
     MOZ_ASSERT(flags.allFlags != 0);
     return flags.allFlags;
