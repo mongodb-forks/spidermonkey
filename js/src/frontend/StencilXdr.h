@@ -40,8 +40,16 @@ struct SharedDataContainer;
 template <typename DataT>
 struct CanCopyDataToDisk {
   // Check that the object is fully packed, to save disk space.
+  // Note that we do not use the MSVC std::has_unique_object_representations,
+  // because it does not work as desired: it rejects any class that deletes its
+  // move constructor as well as any class that deletes both its copy
+  // constructor and copy assignment operator.
+#if !defined(_MSC_VER)
   static constexpr bool unique_repr =
       std::has_unique_object_representations<DataT>();
+#else
+  static constexpr bool unique_repr = true;
+#endif
 
   // Approximation which assumes that 32bits variant of the class would not
   // have pointers if the 64bits variant does not have pointer.
