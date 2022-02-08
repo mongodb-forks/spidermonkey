@@ -29,6 +29,10 @@
 #include "wasm/WasmGC.h"
 #include "wasm/WasmTypes.h"
 
+#ifdef _MSC_VER
+#include <intrin.h>  // For _InterlockedCompareExchange64_np
+#endif
+
 namespace js {
 
 struct AsmJSMetadata;
@@ -663,10 +667,18 @@ class JumpTables {
     // Make sure that compare-and-write is atomic; see comment in
     // wasm::Module::finishTier2 to that effect.
     MOZ_ASSERT(i < numFuncs_);
+
+#ifdef _MSC_VER
+    int64_t expected = 0;
+    (void)_InterlockedCompareExchange64_np(reinterpret_cast<intptr_t*>(&jit_.get()[i]),
+                                           reinterpret_cast<intptr_t>(target),
+                                           expected);
+#else
     void* expected = nullptr;
     (void)__atomic_compare_exchange_n(&jit_.get()[i], &expected, target,
                                       /*weak=*/false, __ATOMIC_RELAXED,
                                       __ATOMIC_RELAXED);
+#endif
   }
   void** getAddressOfJitEntry(size_t i) const {
     MOZ_ASSERT(i < numFuncs_);
