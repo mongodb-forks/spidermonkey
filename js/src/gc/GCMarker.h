@@ -526,7 +526,7 @@ class GCMarker {
   bool isWeakMarking() const { return state == WeakMarking; }
   bool isConcurrentMarking() const { return state == ConcurrentMarking; }
 
-  gc::MarkColor markColor() const { return markColor_; }
+  gc::MarkColor markColor() const { return markColor_.ref(); }
 
   bool isDrained() const;
   bool isMarkStackEmpty() const {

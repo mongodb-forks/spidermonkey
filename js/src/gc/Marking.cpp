@@ -2601,7 +2601,7 @@ void GCMarker::reset() {
 }
 
 void GCMarker::setMarkColor(gc::MarkColor newColor) {
-  if (markColor_ == newColor) {
+  if (markColor_.ref() == newColor) {
     return;
   }
 
