@@ -8963,8 +8963,9 @@ GeneralParser<ParseHandler, Unit>::synthesizePrivateMethodInitializer(
   if (!storedMethodName.append(this->parserAtoms(), propAtom)) {
     return errorResult();
   }
-  if (!storedMethodName.append(
-          accessorType == AccessorType::Getter ? ".getter" : ".setter")) {
+  if (!((accessorType == AccessorType::Getter)
+            ? storedMethodName.append(".getter")
+            : storedMethodName.append(".setter"))) {
     return errorResult();
   }
   auto storedMethodProp =
