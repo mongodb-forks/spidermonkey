@@ -834,7 +834,7 @@ uint32_t TokenStreamAnyChars::computePartialColumn(
 #ifdef DEBUG
                                     this,
 #endif
-                                    start, limit,
+                                    start, limit, ColumnChunkLength,
                                     &sourceUnits](uint32_t index) {
     MOZ_ASSERT(index < this->lastChunkVectorForLine_->length());
 
