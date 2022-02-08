@@ -441,10 +441,10 @@ class GCMarker final : public JSTracer {
                              size_t start, size_t end);
 
   gc::MarkStack& getStack(gc::MarkColor which) {
-    return which == mainStackColor ? stack : auxStack;
+    return which == mainStackColor.ref() ? stack : auxStack;
   }
   const gc::MarkStack& getStack(gc::MarkColor which) const {
-    return which == mainStackColor ? stack : auxStack;
+    return which == mainStackColor.ref() ? stack : auxStack;
   }
 
   gc::MarkStack& currentStack() {
