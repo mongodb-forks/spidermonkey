@@ -1067,9 +1067,9 @@ class BaseStackFrame final : public BaseStackFrameAllocator {
 
   void storeImmediateF32ToStack(float imm, uint32_t destHeight, Register temp) {
     union {
-      int32_t i32;
       float f32;
-    } bits = {.f32 = imm};
+      int32_t i32;
+    } bits{imm};
     static_assert(sizeof(bits) == 4);
     // Do not store 4 bytes if StackSizeOfFloat == 8.  It's probably OK to do
     // so, but it costs little to store something predictable.
@@ -1083,9 +1083,9 @@ class BaseStackFrame final : public BaseStackFrameAllocator {
   void storeImmediateF64ToStack(double imm, uint32_t destHeight,
                                 Register temp) {
     union {
-      int64_t i64;
       double f64;
-    } bits = {.f64 = imm};
+      int64_t i64;
+    } bits{imm};
     static_assert(sizeof(bits) == 8);
     store64BitsToStack(bits.i64, destHeight, temp);
   }
