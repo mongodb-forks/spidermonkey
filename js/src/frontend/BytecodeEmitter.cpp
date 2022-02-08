@@ -9771,8 +9771,9 @@ bool BytecodeEmitter::emitPrivateMethodInitializers(ClassEmitter& ce,
                                  propName->as<NameNode>().atom())) {
       return false;
     }
-    if (!storedMethodName.append(
-            accessorType == AccessorType::Getter ? ".getter" : ".setter")) {
+    if (!((accessorType == AccessorType::Getter)
+              ? storedMethodName.append(".getter")
+              : storedMethodName.append(".setter"))) {
       return false;
     }
     auto storedMethodAtom = storedMethodName.finishParserAtom(parserAtoms());

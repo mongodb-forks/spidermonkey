@@ -7731,8 +7731,9 @@ bool GeneralParser<ParseHandler, Unit>::classMember(
         if (!storedMethodName.append(this->parserAtoms(), propAtom)) {
           return false;
         }
-        if (!storedMethodName.append(
-                atype == AccessorType::Getter ? ".getter" : ".setter")) {
+        if (!((atype == AccessorType::Getter)
+                  ? storedMethodName.append(".getter")
+                  : storedMethodName.append(".setter"))) {
           return false;
         }
         auto storedMethodProp =
