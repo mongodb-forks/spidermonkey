@@ -27,7 +27,11 @@ namespace frontend {
 template <typename DataT>
 struct CanCopyDataToDisk {
   // Check that the object is fully packed, to save disk space.
-#ifdef __cpp_lib_has_unique_object_representations
+  // Note that we do not use the MSVC std::has_unique_object_representations,
+  // because it does not work as desired: it rejects any class that deletes its
+  // move constructor as well as any class that deletes both its copy
+  // constructor and copy assignment operator.
+#if defined(__cpp_lib_has_unique_object_representations) && !defined(_MSC_VER)
   static constexpr bool unique_repr =
       std::has_unique_object_representations<DataT>();
 #else
