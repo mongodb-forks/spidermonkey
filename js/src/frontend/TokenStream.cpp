@@ -788,7 +788,8 @@ uint32_t TokenStreamAnyChars::computePartialColumn(
   // column has offset less than this value.  The most common (non-minified)
   // long line length is likely 80ch, maybe 100ch, so we use that, rounded up to
   // the next power of two for efficient division/multiplication below.
-  constexpr uint32_t ColumnChunkLength = mozilla::tl::RoundUpPow2<100>::value;
+  static constexpr uint32_t ColumnChunkLength =
+      mozilla::tl::RoundUpPow2<100>::value;
 
   // The index within any associated |Vector<ChunkInfo>| of |offset|'s chunk.
   const uint32_t chunkIndex = offsetInLine / ColumnChunkLength;
