@@ -216,6 +216,7 @@ class DebugFrame {
 
   // Flags whose meaning are described below.
   union Flags {
+    uint32_t allFlags;
     struct {
       uint32_t observing : 1;
       uint32_t isDebuggee : 1;
@@ -224,8 +225,7 @@ class DebugFrame {
       uint32_t hasCachedReturnJSValue : 1;
       uint32_t hasSpilledRefRegisterResult : MaxRegisterResults;
     };
-    uint32_t allFlags;
-  } flags_;
+  } flags_{};
 
   // Avoid -Wunused-private-field warnings.
  protected:
@@ -317,7 +317,7 @@ class DebugFrame {
   }
   static constexpr uint32_t hasSpilledRegisterRefResultBitMask(size_t n) {
     MOZ_ASSERT(n < MaxRegisterResults);
-    union Flags flags = {.allFlags = 0};
+    union Flags flags{0};
     flags.hasSpilledRefRegisterResult = 1 << n;
     MOZ_ASSERT(flags.allFlags != 0);
     return flags.allFlags;
