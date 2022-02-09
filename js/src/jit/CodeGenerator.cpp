@@ -1656,7 +1656,7 @@ void CodeGenerator::visitValueToString(LValueToString* lir) {
   Register output = ToRegister(lir->output());
 
   using Fn = JSString* (*)(JSContext*, HandleValue);
-  OutOfLineCode* ool = oolCallVM<Fn, ToStringSlow<CanGC>>(
+  OutOfLineCode* ool = oolCallVM<Fn, ToStringSlowForVM<CanGC>>(
       lir, ArgList(input), StoreRegisterTo(output));
 
   Label done;

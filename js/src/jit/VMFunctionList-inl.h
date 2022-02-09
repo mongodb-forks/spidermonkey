@@ -27,6 +27,19 @@
 #include "vm/Interpreter-inl.h"
 
 namespace js {
+
+/*
+ * Alternative name for the 'ToStringSlow' function. The VMFUNCTION_LIST in
+ * VMFuncionList-inl.h cannot include any overloaded functions, so this name is
+ * provided for use in that list. ('ToStringSlow' has an overload in
+ * Conversions.h.)
+ */
+template <AllowGC allowGC>
+inline JSString* ToStringSlowForVM(
+    JSContext* cx, typename MaybeRooted<Value, allowGC>::HandleType arg) {
+  return ToStringSlow<allowGC>(cx, arg);
+}
+
 namespace jit {
 
 // List of all VM functions to be used with callVM. Each entry stores the name
@@ -262,7 +275,7 @@ namespace jit {
   _(ThrowRuntimeLexicalError, js::jit::ThrowRuntimeLexicalError)               \
   _(ThrowUninitializedThis, js::ThrowUninitializedThis)                        \
   _(ToBigInt, js::ToBigInt)                                                    \
-  _(ToStringSlow, js::ToStringSlow<CanGC>)
+  _(ToStringSlow, js::ToStringSlowForVM<CanGC>)
 
 // The list below is for tail calls. The third argument specifies the number of
 // non-argument Values the VM wrapper should pop from the stack. This is used
