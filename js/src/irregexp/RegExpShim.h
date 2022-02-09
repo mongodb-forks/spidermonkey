@@ -1264,7 +1264,11 @@ class Label {
 
 #define v8_flags js::jit::JitOptions
 
-#define V8_USE_COMPUTED_GOTO 1
+#ifndef NO_COMPUTED_GOTO
+# define V8_USE_COMPUTED_GOTO 1
+#else
+# define V8_USE_COMPUTED_GOTO 0
+#endif
 #define COMPILING_IRREGEXP_FOR_EXTERNAL_EMBEDDER
 
 }  // namespace internal
