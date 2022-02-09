@@ -21,6 +21,7 @@
 #include "builtin/Array.h"       // for NewDenseCopiedArray
 #include "builtin/Promise.h"     // for PromiseReactionRecordBuilder
 #include "debugger/Debugger.h"   // for Completion, Debugger
+#include "debugger/Environment.h"
 #include "debugger/Frame.h"      // for DebuggerFrame
 #include "debugger/NoExecute.h"  // for LeaveDebuggeeNoExecute
 #include "debugger/Script.h"     // for DebuggerScript
