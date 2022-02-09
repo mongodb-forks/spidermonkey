@@ -80,7 +80,7 @@ class PropertyFlags : public EnumFlags<PropertyFlag> {
   bool isDataDescriptor() const { return !isAccessorProperty(); }
 };
 
-constexpr PropertyFlags PropertyFlags::defaultDataPropFlags = {
+inline constexpr PropertyFlags PropertyFlags::defaultDataPropFlags = {
     PropertyFlag::Configurable, PropertyFlag::Enumerable,
     PropertyFlag::Writable};
 
