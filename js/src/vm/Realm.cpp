@@ -15,6 +15,10 @@
 
 #include "debugger/DebugAPI.h"
 #include "debugger/Debugger.h"
+#include "debugger/Environment.h"
+#include "debugger/Frame.h"
+#include "debugger/Script.h"
+#include "debugger/Source.h"
 #include "gc/Policy.h"
 #include "gc/PublicIterators.h"
 #include "jit/JitOptions.h"
