@@ -34,6 +34,19 @@
 #include "vm/Interpreter-inl.h"
 
 namespace js {
+
+/*
+ * Alternative name for the 'ToStringSlow' function. The VMFUNCTION_LIST in
+ * VMFuncionList-inl.h cannot include any overloaded functions, so this name is
+ * provided for use in that list. ('ToStringSlow' has an overload in
+ * Conversions.h.)
+ */
+template <AllowGC allowGC>
+inline JSString* ToStringSlowForVM(
+    JSContext* cx, typename MaybeRooted<Value, allowGC>::HandleType arg) {
+  return ToStringSlow<allowGC>(cx, arg);
+}
+
 namespace jit {
 
 #ifdef FUZZING_JS_FUZZILLI
@@ -362,7 +375,7 @@ namespace jit {
   _(ThrowUninitializedThis, js::ThrowUninitializedThis)                        \
   _(ThrowWithStackOperation, js::ThrowWithStackOperation)                      \
   _(ToBigInt, js::ToBigInt)                                                    \
-  _(ToStringSlow, js::ToStringSlow<js::CanGC>)                                 \
+  _(ToStringSlow, js::ToStringSlowForVM<js::CanGC>)                                 \
   _(ValueToIterator, js::ValueToIterator)                                      \
   _(VarEnvironmentObjectCreateWithoutEnclosing,                                \
     js::VarEnvironmentObject::createWithoutEnclosing)
