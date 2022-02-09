@@ -21,6 +21,10 @@
 #include "mozilla/BinarySearch.h"
 
 #include "debugger/Debugger.h"
+#include "debugger/Environment.h"
+#include "debugger/Frame.h"
+#include "debugger/Script.h"
+#include "debugger/Source.h"
 #include "ds/Sort.h"
 #include "jit/AutoWritableJitCode.h"
 #include "jit/ExecutableAllocator.h"
