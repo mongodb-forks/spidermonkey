@@ -1882,12 +1882,14 @@ void js::ReportInNotObjectError(JSContext* cx, HandleValue lref,
 
 static MOZ_NEVER_INLINE JS_HAZ_JSNATIVE_CALLER bool Interpret(JSContext* cx,
                                                               RunState& state) {
+#ifndef NO_COMPUTED_GOTO
 /*
  * Define macros for an interpreter loop. Opcode dispatch is done by
  * indirect goto (aka a threaded interpreter), which is technically
- * non-standard but is supported by all of our supported compilers.
+ * non-standard but is supported by many compilers.
  */
 #define INTERPRETER_LOOP()
+#define CASE_NOT_COMPUTED(OP) label_##OP:
 #define CASE(OP) label_##OP:
 #define DEFAULT() \
   label_default:
@@ -1907,6 +1909,28 @@ static MOZ_NEVER_INLINE JS_HAZ_JSNATIVE_CALLER bool Interpret(JSContext* cx,
           FOR_EACH_TRAILING_UNUSED_OPCODE(TRAILING_LABEL)
 #undef TRAILING_LABEL
   };
+#else  // End of case where computed goto is available.
+/*
+ * Define macros for a switch-based interpreter loop. Using a switch statement
+ * for dispatch is usually not as fast as the "threaded" approach that uses
+ * indirect goto statements, but it does not require any language extensions
+ * and should work on any standard-compliant C++ compiler.
+ */
+#define INTERPRETER_LOOP()   \
+  the_switch:                \
+    switch (switchOp)
+#define CASE_NOT_COMPUTED(OP) case OP:
+#define CASE(OP) case static_cast<jsbytecode>(JSOp::OP):
+#define DEFAULT() default:
+#define DISPATCH_TO(OP)   \
+    JS_BEGIN_MACRO        \
+      switchOp = (OP);    \
+      goto the_switch;    \
+    JS_END_MACRO
+
+  // This variable is effectively a parameter to the switch.
+  jsbytecode switchOp;
+#endif  // End of case where computed goto is _not_ available.
 
   /*
    * Increment REGS.pc by N, load the opcode at that position,
@@ -2083,7 +2107,7 @@ static MOZ_NEVER_INLINE JS_HAZ_JSNATIVE_CALLER bool Interpret(JSContext* cx,
   ADVANCE_AND_DISPATCH(0);
 
   INTERPRETER_LOOP() {
-    CASE(EnableInterruptsPseudoOpcode) {
+    CASE_NOT_COMPUTED(EnableInterruptsPseudoOpcode) {
       bool moreInterrupts = false;
       jsbytecode op = *REGS.pc;
 
