@@ -81,10 +81,6 @@ class PropertyFlags : public EnumFlags<PropertyFlag> {
   bool isDataDescriptor() const { return !isAccessorProperty(); }
 };
 
-constexpr PropertyFlags PropertyFlags::defaultDataPropFlags = {
-    PropertyFlag::Configurable, PropertyFlag::Enumerable,
-    PropertyFlag::Writable};
-
 // PropertyInfo contains information (PropertyFlags, slot number) for a
 // property stored in the Shape tree. Property lookups on NativeObjects return a
 // PropertyInfo.

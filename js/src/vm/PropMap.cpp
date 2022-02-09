@@ -15,6 +15,10 @@
 
 using namespace js;
 
+const PropertyFlags PropertyFlags::defaultDataPropFlags = {
+    PropertyFlag::Configurable, PropertyFlag::Enumerable,
+    PropertyFlag::Writable};
+
 void PropMap::addSizeOfExcludingThis(mozilla::MallocSizeOf mallocSizeOf,
                                      size_t* children, size_t* tables) const {
   if (isShared() && asShared()->hasChildrenSet()) {
