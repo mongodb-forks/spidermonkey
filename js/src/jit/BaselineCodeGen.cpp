@@ -5113,7 +5113,7 @@ bool BaselineCodeGen<Handler>::emit_ToString() {
 
   // Call ToStringSlow which doesn't handle string inputs.
   using Fn = JSString* (*)(JSContext*, HandleValue);
-  if (!callVM<Fn, ToStringSlow<CanGC>>()) {
+  if (!callVM<Fn, ToStringSlowForVM<CanGC>>()) {
     return false;
   }
 
