@@ -1265,7 +1265,11 @@ const bool FLAG_regexp_tier_up = true;
 #define FLAG_trace_regexp_peephole_optimization \
   js::jit::JitOptions.traceRegExpPeephole
 
-#define V8_USE_COMPUTED_GOTO 1
+#ifndef NO_COMPUTED_GOTO
+# define V8_USE_COMPUTED_GOTO 1
+#else
+# define V8_USE_COMPUTED_GOTO 0
+#endif
 #define COMPILING_IRREGEXP_FOR_EXTERNAL_EMBEDDER
 
 }  // namespace internal
