@@ -11,6 +11,10 @@
 #include <algorithm>
 
 #include "debugger/Debugger.h"
+#include "debugger/Environment.h"
+#include "debugger/Frame.h"
+#include "debugger/Script.h"
+#include "debugger/Source.h"
 #include "gc/GC.h"
 #include "jit/JitCode.h"
 #include "js/Debug.h"
