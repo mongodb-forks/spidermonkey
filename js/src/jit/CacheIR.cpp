@@ -215,7 +215,7 @@ JitCode* CacheIRCloner::getJitCodeField(uint32_t stubOffset) {
   return reinterpret_cast<JitCode*>(readStubWord(stubOffset));
 }
 uint32_t CacheIRCloner::getRawInt32Field(uint32_t stubOffset) {
-  return uint32_t(reinterpret_cast<uintptr_t>(readStubWord(stubOffset)));
+  return uint32_t(readStubWord(stubOffset));
 }
 const void* CacheIRCloner::getRawPointerField(uint32_t stubOffset) {
   return reinterpret_cast<const void*>(readStubWord(stubOffset));
