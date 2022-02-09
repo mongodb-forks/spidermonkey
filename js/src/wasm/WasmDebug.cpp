@@ -19,6 +19,10 @@
 #include "wasm/WasmDebug.h"
 
 #include "debugger/Debugger.h"
+#include "debugger/Environment.h"
+#include "debugger/Frame.h"
+#include "debugger/Script.h"
+#include "debugger/Source.h"
 #include "ds/Sort.h"
 #include "jit/MacroAssembler.h"
 #include "js/ColumnNumber.h"  // JS::WasmFunctionIndex
