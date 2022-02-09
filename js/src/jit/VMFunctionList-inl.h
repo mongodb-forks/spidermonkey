@@ -262,7 +262,7 @@ namespace jit {
   _(ThrowRuntimeLexicalError, js::jit::ThrowRuntimeLexicalError)               \
   _(ThrowUninitializedThis, js::ThrowUninitializedThis)                        \
   _(ToBigInt, js::ToBigInt)                                                    \
-  _(ToStringSlow, js::ToStringSlow<CanGC>)
+  _(ToStringSlow, js::ToStringSlowForVM<CanGC>)
 
 // The list below is for tail calls. The third argument specifies the number of
 // non-argument Values the VM wrapper should pop from the stack. This is used

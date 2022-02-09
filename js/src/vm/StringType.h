@@ -1789,6 +1789,18 @@ extern JSString* ToStringSlow(
     JSContext* cx, typename MaybeRooted<Value, allowGC>::HandleType arg);
 
 /*
+ * Same as the 'ToStringSlow' function. The VMFUNCTION_LIST in
+ * VMFuncionList-inl.h cannot include any overloaded functions, so this name is
+ * provided for use in that list. ('ToStringSlow' has an overload in
+ * Conversions.h.)
+ */
+template <AllowGC allowGC>
+inline JSString* ToStringSlowForVM(
+    JSContext* cx, typename MaybeRooted<Value, allowGC>::HandleType arg) {
+  return ToStringSlow<allowGC>(cx, arg);
+}
+
+/*
  * Convert the given value to a string.  This method includes an inline
  * fast-path for the case where the value is already a string; if the value is
  * known not to be a string, use ToStringSlow instead.
