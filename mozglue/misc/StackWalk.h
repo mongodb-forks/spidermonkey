@@ -13,6 +13,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifdef _MSC_VER
+#include <intrin.h>  // For _ReturnAddress
+#endif
+
 MOZ_BEGIN_EXTERN_C
 
 /**
@@ -31,7 +35,11 @@ MOZ_BEGIN_EXTERN_C
  * to skip to MozStackWalk or MozWalkTheStack, which fell short in more cases
  * (inlining of intermediaries, tail call optimization).
  */
-#define CallerPC() __builtin_extract_return_addr(__builtin_return_address(0))
+#ifndef _MSC_VER
+# define CallerPC() __builtin_extract_return_addr(__builtin_return_address(0))
+#else
+# define CallerPC() _ReturnAddress()
+#endif
 
 /**
  * The callback for MozStackWalk and MozStackWalkThread.
