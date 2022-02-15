@@ -12,7 +12,7 @@
 #include "mozilla/Assertions.h"
 #include "mozilla/Latin1.h"
 
-#ifdef MOZ_HAS_JSRUST
+#if MOZ_HAS_JSRUST()
 // Can't include mozilla/Encoding.h here.
 extern "C" {
 // Declared as uint8_t instead of char to match declaration in another header.
@@ -168,6 +168,63 @@ inline void ConvertAsciitoUtf16(mozilla::Span<const char> aSource,
   ConvertLatin1toUtf16(aSource, aDest);
 }
 
+#else  // The code below is implemented based on the equivalent specification in
+       // `encoding_rs`.
+
+/**
+ * Returns the index of the first non-ASCII byte or
+ * the length of the string if there are none.
+ */
+inline size_t AsciiValidUpTo(mozilla::Span<const char> aString) {
+  size_t length = aString.Length();
+  const char* ptr = aString.Elements();
+  for (size_t i = 0; i < length; i++) {
+    const uint8_t value = *(ptr + i);
+    if (value > 127) {
+      return i;
+    }
+  }
+  return length;
+}
+
+/**
+ * Returns the index of the first unpaired surrogate or
+ * the length of the string if there are none.
+ */
+size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString);
+
+/**
+ * Replaces unpaired surrogates with U+FFFD in the argument.
+ *
+ * Note: If you have an nsAString, use EnsureUTF16Validity() from
+ * nsReadableUtils.h instead to avoid unsharing a valid shared
+ * string.
+ */
+inline void EnsureUtf16ValiditySpan(mozilla::Span<char16_t> aString) {
+  size_t length = aString.Length();
+  char16_t* ptr = aString.Elements();
+  size_t offset = 0;
+  while (true) {
+    offset += Utf16ValidUpTo(aString.Subspan(offset));
+    if (offset == length) {
+      return;
+    }
+    ptr[offset] = 0xFFFD;
+    offset += 1;
+  }
+}
+
+/**
+ * Convert ASCII to UTF-16. In debug builds, assert that the input is
+ * ASCII.
+ *
+ * The length of aDest must not be less than the length of aSource.
+ */
+inline void ConvertAsciitoUtf16(mozilla::Span<const char> aSource,
+                                mozilla::Span<char16_t> aDest) {
+  MOZ_ASSERT(IsAscii(aSource));
+  ConvertLatin1toUtf16(aSource, aDest);
+}
 #endif  // MOZ_HAS_JSRUST
 
 /**
