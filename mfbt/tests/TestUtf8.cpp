@@ -14,15 +14,26 @@
 #include "mozilla/IntegerRange.h"
 #include "mozilla/TextUtils.h"
 
+using mozilla::ArrayEqual;
 using mozilla::ArrayLength;
 using mozilla::AsChars;
+using mozilla::ConvertUtf16toUtf8;
+using mozilla::ConvertUtf16toUtf8Partial;
+using mozilla::ConvertUtf8toUtf16;
+using mozilla::ConvertUtf8toUtf16WithoutReplacement;
 using mozilla::DecodeOneUtf8CodePoint;
 using mozilla::EnumSet;
 using mozilla::IntegerRange;
 using mozilla::IsAscii;
 using mozilla::IsUtf8;
+using mozilla::Maybe;
+using mozilla::Nothing;
+using mozilla::Some;
 using mozilla::Span;
+using mozilla::Tie;
+using mozilla::UnsafeConvertValidUtf8toUtf16;
 using mozilla::Utf8Unit;
+using mozilla::Utf8ValidUpTo;
 
 // Disable the C++ 2a warning. See bug #1509926
 #if defined(__clang__) && (__clang_major__ >= 6)
@@ -743,10 +754,661 @@ static void TestDecodeOneUtf8CodePoint() {
   TestDecodeOneInvalidUtf8CodePoint();
 }
 
+static void TestUtf8ValidUpTo() {
+  static const size_t baseLen = strlen("abcdefghijklmnop");
+  static const char bytes0[] = "abcdefghijklmnopaabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes0, ArrayLength(bytes0))) ==
+                     ArrayLength(bytes0));
+  static const char bytes1[] = "abcdefghijklmnop\u00FEabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes1, ArrayLength(bytes1))) ==
+                     ArrayLength(bytes1));
+  static const char bytes2[] = "abcdefghijklmnop\u03B1abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes2, ArrayLength(bytes2))) ==
+                     ArrayLength(bytes2));
+  static const char bytes3[] = "abcdefghijklmnop\u3041abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes3, ArrayLength(bytes3))) ==
+                     ArrayLength(bytes3));
+  static const char bytes4[] = "abcdefghijklmnop\U0001F4A9abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes4, ArrayLength(bytes4))) ==
+                     ArrayLength(bytes4));
+  static const char bytes5[] = "abcdefghijklmnop\uFE00abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes5, ArrayLength(bytes5))) ==
+                     ArrayLength(bytes5));
+  static const char bytes6[] = "abcdefghijklmnop\u202Cabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes6, ArrayLength(bytes6))) ==
+                     ArrayLength(bytes6));
+  static const char bytes7[] = "abcdefghijklmnop\uFEFFabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes7, ArrayLength(bytes7))) ==
+                     ArrayLength(bytes7));
+  static const char bytes8[] = "abcdefghijklmnop\u0590abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes8, ArrayLength(bytes8))) ==
+                     ArrayLength(bytes8));
+  static const char bytes9[] = "abcdefghijklmnop\u08FFabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes9, ArrayLength(bytes9))) ==
+                     ArrayLength(bytes9));
+  static const char bytes10[] = "abcdefghijklmnop\u061Cabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes10, ArrayLength(bytes10))) ==
+                     ArrayLength(bytes10));
+  static const char bytes11[] = "abcdefghijklmnop\uFB50abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes11, ArrayLength(bytes11))) ==
+                     ArrayLength(bytes11));
+  static const char bytes12[] = "abcdefghijklmnop\uFDFFabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes12, ArrayLength(bytes12))) ==
+                     ArrayLength(bytes12));
+  static const char bytes13[] = "abcdefghijklmnop\uFE70abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes13, ArrayLength(bytes13))) ==
+                     ArrayLength(bytes13));
+  static const char bytes14[] = "abcdefghijklmnop\uFEFEabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes14, ArrayLength(bytes14))) ==
+                     ArrayLength(bytes14));
+  static const char bytes15[] = "abcdefghijklmnop\u200Fabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes15, ArrayLength(bytes15))) ==
+                     ArrayLength(bytes15));
+  static const char bytes16[] = "abcdefghijklmnop\u202Babcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes16, ArrayLength(bytes16))) ==
+                     ArrayLength(bytes16));
+  static const char bytes17[] = "abcdefghijklmnop\u202Eabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes17, ArrayLength(bytes17))) ==
+                     ArrayLength(bytes17));
+  static const char bytes18[] = "abcdefghijklmnop\u2067abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes18, ArrayLength(bytes18))) ==
+                     ArrayLength(bytes18));
+  static const char bytes19[] = "abcdefghijklmnop\U00010800abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes19, ArrayLength(bytes19))) ==
+                     ArrayLength(bytes19));
+  static const char bytes20[] = "abcdefghijklmnop\u10FFFabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes20, ArrayLength(bytes20))) ==
+                     ArrayLength(bytes20));
+  static const char bytes21[] = "abcdefghijklmnop\U0001E800abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes21, ArrayLength(bytes21))) ==
+                     ArrayLength(bytes21));
+  static const char bytes22[] = "abcdefghijklmnop\U0001EFFFabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes22, ArrayLength(bytes22))) ==
+                     ArrayLength(bytes22));
+  static const char bytes23[] =
+      "abcdefghijklmnop\x80\xBF"
+      "abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes23, ArrayLength(bytes23))) ==
+                     baseLen);
+}
+
+static void TestConvertUtf16toUtf8Partial() {
+  static const char reference[] =
+      "abcdefghijklmnopqrstu\U0001F4A9v\u2603w\u00B6xyzz";
+  static const size_t referenceLen = ArrayLength(reference);
+  static const size_t srcLen = referenceLen + 1;
+  static char16_t src[srcLen];
+  size_t written =
+      ConvertUtf8toUtf16(Span(reference, referenceLen), Span(src, srcLen));
+  const Span srcSpan(src, written);
+  const size_t dstLen = srcSpan.Length() * 3 + 1;
+  char dst[dstLen];
+  memset(dst, 0, dstLen * sizeof(char));
+  size_t read;
+  Tie(read, written) = ConvertUtf16toUtf8Partial(srcSpan, Span(dst, 24));
+  written = ConvertUtf16toUtf8(Span(src + read, src + srcSpan.Length()),
+                               Span(dst + written, dst + dstLen));
+  MOZ_RELEASE_ASSERT(ArrayEqual(dst, reference, written));
+}
+
+static void TestConvertUtf16toUtf8() {
+  static const char reference[] =
+      "abcdefghijklmnopqrstu\U0001F4A9v\u2603w\u00B6xyzz";
+  static const size_t referenceLen = ArrayLength(reference);
+  static const size_t srcLen = referenceLen + 1;
+  static char16_t src[srcLen];
+  size_t written =
+      ConvertUtf8toUtf16(Span(reference, referenceLen), Span(src, srcLen));
+  const Span srcSpan(src, written);
+  const size_t dstLen = srcSpan.Length() * 3 + 1;
+  char dst[dstLen];
+  memset(dst, 0, dstLen * sizeof(char));
+  written = ConvertUtf16toUtf8(srcSpan, Span(dst, dstLen));
+  MOZ_RELEASE_ASSERT(ArrayEqual(dst, reference, written));
+}
+
+static void TestConvertUtf8toUtf16() {
+  static const char src[] = "abcdefghijklmnopqrstu\U0001F4A9v\u2603w\u00B6xyzz";
+  static const size_t srcLen = ArrayLength(src);
+  const char* srcPtr = src;
+  const char* srcLimit = srcPtr + srcLen;
+  static const size_t dstLen = srcLen + 1;
+  static char16_t dst[dstLen];
+  memset(dst, 0, dstLen * sizeof(char));
+  size_t written = ConvertUtf8toUtf16(Span(src, srcLen), Span(dst, dstLen));
+
+  static const size_t referenceLen = srcLen + 1;
+  static char16_t reference[referenceLen];
+  char16_t* referencePtr = reference;
+  char16_t* referenceLimit = referencePtr + referenceLen;
+  UErrorCode uConverterErr = U_ZERO_ERROR;
+  std::shared_ptr<UConverter> utf8Cnv(ucnv_open("UTF-8", &uConverterErr),
+                                      ucnv_close);
+  UConverter* utf8Conv = utf8Cnv.get();
+  UErrorCode err = U_ZERO_ERROR;
+  ucnv_toUnicode(utf8Conv, &referencePtr, referenceLimit, &srcPtr, srcLimit,
+                 nullptr, true, &err);
+  MOZ_RELEASE_ASSERT(!U_FAILURE(err));
+  MOZ_RELEASE_ASSERT(srcPtr == srcLimit);
+  MOZ_RELEASE_ASSERT(referencePtr <= referenceLimit);
+
+  MOZ_RELEASE_ASSERT(static_cast<size_t>(referencePtr - reference) == written);
+  MOZ_RELEASE_ASSERT(ArrayEqual(dst, reference, written));
+}
+
+static void TestConvertUtf8toUtf16WithoutReplacement() {
+  static const size_t bufLen = 5;
+  static char16_t buf[bufLen];
+  memset(buf, 0, bufLen * sizeof(char16_t));
+  Maybe<size_t> written;
+
+  static const char src1[] = "ab";
+  static const size_t src1Len =
+      ArrayLength(src1) - 1;  // -1 for the nullptr byte at the end
+  written =
+      ConvertUtf8toUtf16WithoutReplacement(Span(src1, src1Len), Span(buf, 2));
+  MOZ_RELEASE_ASSERT(!written.isNothing());
+  MOZ_RELEASE_ASSERT(*written == 2);
+  MOZ_RELEASE_ASSERT(buf[0] == static_cast<char16_t>('a'));
+  MOZ_RELEASE_ASSERT(buf[1] == static_cast<char16_t>('b'));
+  MOZ_RELEASE_ASSERT(buf[2] == 0);
+
+  static const char src2[] =
+      "\xC3\xA4"
+      "c";
+  static const size_t src2Len =
+      ArrayLength(src2) - 1;  // -1 for the nullptr byte at the end
+  written =
+      ConvertUtf8toUtf16WithoutReplacement(Span(src2, src2Len), Span(buf, 3));
+  MOZ_RELEASE_ASSERT(!written.isNothing());
+  MOZ_RELEASE_ASSERT(*written == 2);
+  MOZ_RELEASE_ASSERT(buf[0] == static_cast<char16_t>(0xE4));
+  MOZ_RELEASE_ASSERT(buf[1] == static_cast<char16_t>('c'));
+  MOZ_RELEASE_ASSERT(buf[2] == 0);
+
+  static const char src3[] = "\xE2\x98\x83";
+  static const size_t src3Len =
+      ArrayLength(src3) - 1;  // -1 for the nullptr byte at the end
+  written =
+      ConvertUtf8toUtf16WithoutReplacement(Span(src3, src3Len), Span(buf, 3));
+  MOZ_RELEASE_ASSERT(!written.isNothing());
+  MOZ_RELEASE_ASSERT(*written == 1);
+  MOZ_RELEASE_ASSERT(buf[0] == static_cast<char16_t>(0x2603));
+  MOZ_RELEASE_ASSERT(buf[1] == static_cast<char16_t>('c'));
+  MOZ_RELEASE_ASSERT(buf[2] == 0);
+
+  static const char src4[] =
+      "\xE2\x98\x83"
+      "d";
+  static const size_t src4Len =
+      ArrayLength(src4) - 1;  // -1 for the nullptr byte at the end
+  written =
+      ConvertUtf8toUtf16WithoutReplacement(Span(src4, src4Len), Span(buf, 4));
+  MOZ_RELEASE_ASSERT(!written.isNothing());
+  MOZ_RELEASE_ASSERT(*written == 2);
+  MOZ_RELEASE_ASSERT(buf[0] == static_cast<char16_t>(0x2603));
+  MOZ_RELEASE_ASSERT(buf[1] == static_cast<char16_t>('d'));
+  MOZ_RELEASE_ASSERT(buf[2] == 0);
+
+  static const char src5[] = "\xE2\x98\x83\xC3\xA4";
+  static const size_t src5Len =
+      ArrayLength(src5) - 1;  // -1 for the nullptr byte at the end
+  written =
+      ConvertUtf8toUtf16WithoutReplacement(Span(src5, src5Len), Span(buf, 5));
+  MOZ_RELEASE_ASSERT(!written.isNothing());
+  MOZ_RELEASE_ASSERT(*written == 2);
+  MOZ_RELEASE_ASSERT(buf[0] == static_cast<char16_t>(0x2603));
+  MOZ_RELEASE_ASSERT(buf[1] == static_cast<char16_t>(0xE4));
+  MOZ_RELEASE_ASSERT(buf[2] == 0);
+
+  static const char src6[] = "\xF0\x9F\x93\x8E";
+  static const size_t src6Len =
+      ArrayLength(src6) - 1;  // -1 for the nullptr byte at the end
+  written =
+      ConvertUtf8toUtf16WithoutReplacement(Span(src6, src6Len), Span(buf, 4));
+  MOZ_RELEASE_ASSERT(!written.isNothing());
+  MOZ_RELEASE_ASSERT(*written == 2);
+  MOZ_RELEASE_ASSERT(buf[0] == static_cast<char16_t>(0xD83D));
+  MOZ_RELEASE_ASSERT(buf[1] == static_cast<char16_t>(0xDCCE));
+  MOZ_RELEASE_ASSERT(buf[2] == 0);
+
+  static const char src7[] =
+      "\xF0\x9F\x93\x8E"
+      "e";
+  static const size_t src7Len =
+      ArrayLength(src7) - 1;  // -1 for the nullptr byte at the end
+  written =
+      ConvertUtf8toUtf16WithoutReplacement(Span(src7, src7Len), Span(buf, 5));
+  MOZ_RELEASE_ASSERT(!written.isNothing());
+  MOZ_RELEASE_ASSERT(*written == 3);
+  MOZ_RELEASE_ASSERT(buf[0] == static_cast<char16_t>(0xD83D));
+  MOZ_RELEASE_ASSERT(buf[1] == static_cast<char16_t>(0xDCCE));
+  MOZ_RELEASE_ASSERT(buf[2] == static_cast<char16_t>('e'));
+  MOZ_RELEASE_ASSERT(buf[3] == 0);
+
+  static const char src8[] = "\xF0\x9F\x93";
+  static const size_t src8Len =
+      ArrayLength(src8) - 1;  // -1 for the nullptr byte at the end
+  written =
+      ConvertUtf8toUtf16WithoutReplacement(Span(src8, src8Len), Span(buf, 5));
+  MOZ_RELEASE_ASSERT(written.isNothing());
+}
+
+static void DecodeValidUtf8(const char* bytes) {
+  size_t bytesLen = strlen(bytes);
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes, bytesLen)) == bytesLen);
+}
+
+static void TestValidUtf8() {
+  // Empty
+  DecodeValidUtf8("");
+  // ASCII
+  DecodeValidUtf8("ab");
+  // Low BMP
+  DecodeValidUtf8("a\u00E4Z");
+  // High BMP
+  DecodeValidUtf8("a\u2603Z");
+  // Astral
+  DecodeValidUtf8("a\U0001F4A9Z");
+
+  // Boundary conditions
+  // Lowest single-byte
+  DecodeValidUtf8("Z\x00");
+  DecodeValidUtf8("Z\x00Z");
+
+  // Highest single-byte
+  DecodeValidUtf8("a\x7F");
+  DecodeValidUtf8("a\x7FZ");
+}
+
+static void EncodeUtf8FromUtf16(Span<const char16_t> src,
+                                Span<const char> expect) {
+  const size_t dstLen = src.Length() * 3 + 1;
+  char dst[dstLen];
+  memset(dst, 0, dstLen * sizeof(char));
+  const auto written = ConvertUtf16toUtf8(src, Span(dst, dstLen));
+  MOZ_RELEASE_ASSERT(written == expect.Length());
+  MOZ_RELEASE_ASSERT(ArrayEqual(dst, expect.Elements(), written));
+}
+
+#define P99_PROTECT(...) __VA_ARGS__
+#define ARR(...) P99_PROTECT(__VA_ARGS__)
+#define ENC(src, expect)                                          \
+  {                                                               \
+    const char16_t src1[] = src;                                  \
+    const char expect1[] = expect;                                \
+    EncodeUtf8FromUtf16(Span(src1, ArrayLength(src1)),            \
+                        Span(expect1, ArrayLength(expect1) - 1)); \
+  }
+
+#define ENC_WITH_EMPTY_SRC(expect)                                \
+  {                                                               \
+    const char16_t src1[] = {};                                   \
+    const char expect1[] = expect;                                \
+    EncodeUtf8FromUtf16(Span(src1, src1),                         \
+                        Span(expect1, ArrayLength(expect1) - 1)); \
+  }
+
+static void EncodeUtf8FromUtf16WithOutputLimit(Span<const char16_t> src,
+                                               Span<const char> expect,
+                                               size_t limit,
+                                               Maybe<size_t> shouldRead,
+                                               Maybe<size_t> shouldWrite) {
+  const size_t dstLen = limit;
+  char dst[dstLen];
+  memset(dst, 0, dstLen * sizeof(char));
+
+  size_t read;
+  size_t written;
+  Tie(read, written) = ConvertUtf16toUtf8Partial(src, Span(dst, dstLen));
+  MOZ_RELEASE_ASSERT(written <= limit);
+  if (!shouldRead.isNothing()) {
+    MOZ_RELEASE_ASSERT(read == *shouldRead);
+  }
+  if (!shouldWrite.isNothing()) {
+    MOZ_RELEASE_ASSERT(written == *shouldWrite);
+  }
+  for (size_t i = 0; i < written; ++i) {
+    const auto expectedChar = expect.Elements()[i];
+    MOZ_RELEASE_ASSERT(expectedChar == dst[i]);
+  }
+  MOZ_RELEASE_ASSERT(IsUtf8(Span(dst, written)));
+  MOZ_RELEASE_ASSERT(ArrayEqual(dst, expect.Elements(), written));
+}
+
+#define SBRC SINGLE_BYTE_REPLACEMENT_CHAR
+#define DBRC DOUBLE_BYTE_REPLACEMENT_CHAR
+#define TBRC TRIPLE_BYTE_REPLACEMENT_CHAR
+
+#define ENC_LMT(src, expect, limit, read, written)                  \
+  {                                                                 \
+    const char16_t src1[] = src;                                    \
+    const char expect1[] = expect;                                  \
+    EncodeUtf8FromUtf16WithOutputLimit(                             \
+        Span(src1, ArrayLength(src1)),                              \
+        Span(expect1, ArrayLength(expect1) - 1), limit, Some(read), \
+        Some(written));                                             \
+  }
+
+#define ENC_LMT_WITH_EMPTY_SOURCE(expect, limit, read, written)           \
+  {                                                                       \
+    const char16_t src1[] = {};                                           \
+    const char expect1[] = expect;                                        \
+    EncodeUtf8FromUtf16WithOutputLimit(                                   \
+        Span(src1, src1), Span(expect1, ArrayLength(expect1) - 1), limit, \
+        Some(read), Some(written));                                       \
+  }
+//     fn EncodeUtf8FromUtf16WithOutputLimit(
+//         string: &[u16],
+//         expect: &str,
+//         limit: usize,
+//         expect_result: EncoderResult,
+//     ) {
+//         let mut dst = Vec::new();
+//         {
+//             dst.resize(limit, 0u8);
+//             let mut encoder = UTF_8.new_encoder();
+//             let (result, read, written) =
+//                 encoder.encode_from_utf16_without_replacement(string, &mut
+//                 dst, false);
+//             assert_eq!(result, expect_result);
+//             if expect_result == EncoderResult::InputEmpty {
+//                 assert_eq!(read, string.len());
+//             }
+//             assert_eq!(&dst[..written], expect.as_bytes());
+//         }
+//         {
+//             dst.resize(64, 0u8);
+//             for (i, elem) in dst.iter_mut().enumerate() {
+//                 *elem = i as u8;
+//             }
+//             let mut encoder = UTF_8.new_encoder();
+//             let (_, _, mut j) =
+//                 encoder.encode_from_utf16_without_replacement(string, &mut
+//                 dst, false);
+//             while j < dst.len() {
+//                 assert_eq!(usize::from(dst[j]), j);
+//                 j += 1;
+//             }
+//         }
+//     }
+
+static void TestUtf8Encode() {
+  // // Empty
+  ENC_WITH_EMPTY_SRC("");
+  ENC({0x0000}, "\u0000");
+  ENC({0x007F}, "\u007F");
+  ENC({0x0080}, "\u0080");
+  ENC({0x07FF}, "\u07FF");
+  ENC({0x0800}, "\u0800");
+  ENC({0xD7FF}, "\uD7FF");
+  ENC({0xD800}, TBRC);
+  ENC(ARR({0xD800, 0x0062}), TBRC "\u0062");
+  ENC({0xDFFF}, TBRC);
+  ENC(ARR({0xDFFF, 0x0062}), TBRC "\u0062");
+  ENC({0xE000}, "\uE000");
+  ENC({0xFFFF}, "\uFFFF");
+  ENC(ARR({0xD800, 0xDC00}), "\U00010000");
+  ENC(ARR({0xDBFF, 0xDFFF}), "\U0010FFFF");
+  ENC(ARR({0xDC00, 0xDEDE}), TBRC TBRC);
+}
+
+static void TestEncodeUtf8FromUtf16WithOutputLimit() {
+  // Single-byte UTF-8 input.
+  ENC_LMT({0x0062}, "", 0, 0, 0);
+  ENC_LMT({0x0062}, "\u0062", 1, 1, 1);
+
+  // Double-byte UTF-8 input.
+  ENC_LMT({0x00A7}, "", 0, 0, 0);
+  ENC_LMT({0x00A7}, SBRC, 1, 1, 1);
+  ENC_LMT({0x00A7}, "\u00A7", 2, 1, 2);
+
+  // Triple-byte UTF-8 input.
+  ENC_LMT({0x2603}, "", 0, 0, 0);
+  ENC_LMT({0x2603}, SBRC, 1, 1, 1);
+  ENC_LMT({0x2603}, DBRC, 2, 1, 2);
+  ENC_LMT({0x2603}, "\u2603", 3, 1, 3);
+
+  // Quadraple-byte UTF-8 input.
+  ENC_LMT(ARR({0xD83D, 0xDCA9}), "", 0, 0, 0);
+  ENC_LMT(ARR({0xD83D, 0xDCA9}), SBRC, 1, 2, 1);
+  ENC_LMT(ARR({0xD83D, 0xDCA9}), DBRC, 2, 2, 2);
+  ENC_LMT(ARR({0xD83D, 0xDCA9}), TBRC, 3, 2, 3);
+  ENC_LMT(ARR({0xD83D, 0xDCA9}), "\U0001F4A9", 4, 2, 4);
+
+  // Valid UTF-8 input starting with a single-byte UTF-8 character.
+  ENC_LMT(ARR({0x0063, 0x0062}), "\u0063\u0062", 2, 2, 2);
+  ENC_LMT(ARR({0x0063, 0x00A7}), "\u0063" SBRC, 2, 2, 2);
+  ENC_LMT(ARR({0x0063, 0x00A7}), "\u0063\u00A7", 3, 2, 3);
+
+  ENC_LMT(ARR({0x0063, 0x2603}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x0063, 0x2603}), "\u0063", 1, 1, 1);
+  ENC_LMT(ARR({0x0063, 0x2603}), "\u0063" SBRC, 2, 2, 2);
+  ENC_LMT(ARR({0x0063, 0x2603}), "\u0063" DBRC, 3, 2, 3);
+  ENC_LMT(ARR({0x0063, 0x2603}), "\u0063\u2603", 4, 2, 4);
+
+  ENC_LMT(ARR({0x0063, 0xD83D, 0xDCA9}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x0063, 0xD83D, 0xDCA9}), "\u0063", 1, 1, 1);
+  ENC_LMT(ARR({0x0063, 0xD83D, 0xDCA9}), "\u0063" SBRC, 2, 3, 2);
+  ENC_LMT(ARR({0x0063, 0xD83D, 0xDCA9}), "\u0063" DBRC, 3, 3, 3);
+  ENC_LMT(ARR({0x0063, 0xD83D, 0xDCA9}), "\u0063" TBRC, 4, 3, 4);
+  ENC_LMT(ARR({0x0063, 0xD83D, 0xDCA9}), "\u0063\U0001F4A9", 5, 3, 5);
+  ENC_LMT(ARR({0x0063, 0xD83D, 0xDCA9}), "\u0063\U0001F4A9", 6, 3, 5);
+
+  // Valid UTF-8 input starting with a double-byte UTF-8 character.
+  ENC_LMT(ARR({0x00B6, 0x0062}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x00B6, 0x0062}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0x00B6, 0x0062}), "\u00B6", 2, 1, 2);
+  ENC_LMT(ARR({0x00B6, 0x0062}), "\u00B6\u0062", 3, 2, 3);
+  ENC_LMT(ARR({0x00B6, 0x0062}), "\u00B6\u0062", 4, 2, 3);
+
+  ENC_LMT(ARR({0x00B6, 0x00A7}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x00B6, 0x00A7}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0x00B6, 0x00A7}), "\u00B6", 2, 1, 2);
+  ENC_LMT(ARR({0x00B6, 0x00A7}), "\u00B6" SBRC, 3, 2, 3);
+  ENC_LMT(ARR({0x00B6, 0x00A7}), "\u00B6\u00A7", 4, 2, 4);
+  ENC_LMT(ARR({0x00B6, 0x00A7}), "\u00B6\u00A7", 5, 2, 4);
+
+  ENC_LMT(ARR({0x00B6, 0x2603}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x00B6, 0x2603}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0x00B6, 0x2603}), "\u00B6", 2, 1, 2);
+  ENC_LMT(ARR({0x00B6, 0x2603}), "\u00B6" SBRC, 3, 2, 3);
+  ENC_LMT(ARR({0x00B6, 0x2603}), "\u00B6" DBRC, 4, 2, 4);
+  ENC_LMT(ARR({0x00B6, 0x2603}), "\u00B6\u2603", 5, 2, 5);
+  ENC_LMT(ARR({0x00B6, 0x2603}), "\u00B6\u2603", 6, 2, 5);
+
+  ENC_LMT(ARR({0x00B6, 0xD83D, 0xDCA9}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x00B6, 0xD83D, 0xDCA9}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0x00B6, 0xD83D, 0xDCA9}), "\u00B6", 2, 1, 2);
+  ENC_LMT(ARR({0x00B6, 0xD83D, 0xDCA9}), "\u00B6" SBRC, 3, 3, 3);
+  ENC_LMT(ARR({0x00B6, 0xD83D, 0xDCA9}), "\u00B6" DBRC, 4, 3, 4);
+  ENC_LMT(ARR({0x00B6, 0xD83D, 0xDCA9}), "\u00B6" TBRC, 5, 3, 5);
+  ENC_LMT(ARR({0x00B6, 0xD83D, 0xDCA9}), "\u00B6\U0001F4A9", 6, 3, 6);
+  ENC_LMT(ARR({0x00B6, 0xD83D, 0xDCA9}), "\u00B6\U0001F4A9", 7, 3, 6);
+
+  // Valid UTF-8 input starting with a triple-byte UTF-8 character.
+  ENC_LMT(ARR({0x263A, 0x0062}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x263A, 0x0062}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0x263A, 0x0062}), DBRC, 2, 1, 2);
+  ENC_LMT(ARR({0x263A, 0x0062}), "\u263A", 3, 1, 3);
+  ENC_LMT(ARR({0x263A, 0x0062}), "\u263A\u0062", 4, 2, 4);
+  ENC_LMT(ARR({0x263A, 0x0062}), "\u263A\u0062", 5, 2, 4);
+
+  ENC_LMT(ARR({0x263A, 0x0062, 0x0062}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x263A, 0x0062, 0x0062}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0x263A, 0x0062, 0x0062}), DBRC, 2, 1, 2);
+  ENC_LMT(ARR({0x263A, 0x0062, 0x0062}), "\u263A", 3, 1, 3);
+  ENC_LMT(ARR({0x263A, 0x0062, 0x0062}), "\u263A\u0062", 4, 2, 4);
+  ENC_LMT(ARR({0x263A, 0x0062, 0x0062}), "\u263A\u0062\u0062", 5, 3, 5);
+  ENC_LMT(ARR({0x263A, 0x0062, 0x0062}), "\u263A\u0062\u0062", 6, 3, 5);
+
+  ENC_LMT(ARR({0x263A, 0x00A7}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x263A, 0x00A7}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0x263A, 0x00A7}), DBRC, 2, 1, 2);
+  ENC_LMT(ARR({0x263A, 0x00A7}), "\u263A", 3, 1, 3);
+  ENC_LMT(ARR({0x263A, 0x00A7}), "\u263A" SBRC, 4, 2, 4);
+  ENC_LMT(ARR({0x263A, 0x00A7}), "\u263A\u00A7", 5, 2, 5);
+  ENC_LMT(ARR({0x263A, 0x00A7}), "\u263A\u00A7", 6, 2, 5);
+
+  ENC_LMT(ARR({0x263A, 0x2603}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x263A, 0x2603}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0x263A, 0x2603}), DBRC, 2, 1, 2);
+  ENC_LMT(ARR({0x263A, 0x2603}), "\u263A", 3, 1, 3);
+  ENC_LMT(ARR({0x263A, 0x2603}), "\u263A" SBRC, 4, 2, 4);
+  ENC_LMT(ARR({0x263A, 0x2603}), "\u263A" DBRC, 5, 2, 5);
+  ENC_LMT(ARR({0x263A, 0x2603}), "\u263A\u2603", 6, 2, 6);
+  ENC_LMT(ARR({0x263A, 0x2603}), "\u263A\u2603", 7, 2, 6);
+
+  ENC_LMT(ARR({0x263A, 0xD83D, 0xDCA9}), "", 0, 0, 0);
+  ENC_LMT(ARR({0x263A, 0xD83D, 0xDCA9}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0x263A, 0xD83D, 0xDCA9}), DBRC, 2, 1, 2);
+  ENC_LMT(ARR({0x263A, 0xD83D, 0xDCA9}), "\u263A", 3, 1, 3);
+  ENC_LMT(ARR({0x263A, 0xD83D, 0xDCA9}), "\u263A" SBRC, 4, 3, 4);
+  ENC_LMT(ARR({0x263A, 0xD83D, 0xDCA9}), "\u263A" DBRC, 5, 3, 5);
+  ENC_LMT(ARR({0x263A, 0xD83D, 0xDCA9}), "\u263A" TBRC, 6, 3, 6);
+  ENC_LMT(ARR({0x263A, 0xD83D, 0xDCA9}), "\u263A\U0001F4A9", 7, 3, 7);
+  ENC_LMT(ARR({0x263A, 0xD83D, 0xDCA9}), "\u263A\U0001F4A9", 8, 3, 7);
+
+  // Valid UTF-8 input starting with a triple-byte UTF-8 character.
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x0062}), "", 0, 0, 0);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x0062}), SBRC, 1, 2, 1);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x0062}), DBRC, 2, 2, 2);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x0062}), TBRC, 3, 2, 3);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x0062}), "\U0001F60E", 4, 2, 4);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x0062}), "\U0001F60E\u0062", 5, 3, 5);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x0062}), "\U0001F60E\u0062", 6, 3, 5);
+
+  ENC_LMT(ARR({0xFFFD}), "", 0, 0, 0);
+  ENC_LMT(ARR({0xFFFD}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0xFFFD}), DBRC, 2, 1, 2);
+  ENC_LMT(ARR({0xFFFD}), "\uFFFD", 3, 1, 3);
+
+  // Valid UTF-8 input starting with a quadruple-byte UTF-8 character and ending
+  // with a double-byte UTF-8 character.
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x00A7}), SBRC, 1, 2, 1);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x00A7}), DBRC, 2, 2, 2);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x00A7}), TBRC, 3, 2, 3);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x00A7}), "\U0001F60E", 4, 2, 4);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x00A7}), "\U0001F60E" SBRC, 5, 3, 5);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x00A7}), "\U0001F60E\u00A7", 6, 3, 6);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x00A7}), "\U0001F60E\u00A7", 7, 3, 6);
+
+  // Valid UTF-8 input starting with a quadruple-byte UTF-8 character and ending
+  // with a triple-byte UTF-8 character.
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x2603}), SBRC, 1, 2, 1);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x2603}), DBRC, 2, 2, 2);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x2603}), TBRC, 3, 2, 3);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x2603}), "\U0001F60E", 4, 2, 4);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x2603}), "\U0001F60E" SBRC, 5, 3, 5);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x2603}), "\U0001F60E" DBRC, 6, 3, 6);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x2603}), "\U0001F60E\u2603", 7, 3, 7);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0x2603}), "\U0001F60E\u2603", 8, 3, 7);
+
+  // Valid UTF-8 input starting with a quadruple-byte UTF-8 character and ending
+  // with a quadruple-byte UTF-8 character.
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0xD83D, 0xDCA9}), SBRC, 1, 2, 1);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0xD83D, 0xDCA9}), DBRC, 2, 2, 2);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0xD83D, 0xDCA9}), TBRC, 3, 2, 3);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0xD83D, 0xDCA9}), "\U0001F60E", 4, 2, 4);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0xD83D, 0xDCA9}), "\U0001F60E" SBRC, 5, 4, 5);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0xD83D, 0xDCA9}), "\U0001F60E" DBRC, 6, 4, 6);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0xD83D, 0xDCA9}), "\U0001F60E" TBRC, 7, 4, 7);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0xD83D, 0xDCA9}), "\U0001F60E\U0001F4A9", 8, 4,
+          8);
+  ENC_LMT(ARR({0xD83D, 0xDE0E, 0xD83D, 0xDCA9}), "\U0001F60E\U0001F4A9", 9, 4,
+          8);
+
+  // Valid UTF-8 input with a double-byte UTF-8 character in the middle.
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x0062, 0x0062}), "\u0063", 1, 1, 1);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x0062, 0x0062}), "\u0063" SBRC, 2, 2, 2);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x0062, 0x0062}), "\u0063\u00B6", 3, 2, 3);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x0062, 0x0062}), "\u0063\u00B6\u0062", 4, 3, 4);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x0062, 0x0062}), "\u0063\u00B6\u0062\u0062", 5,
+          4, 5);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x0062, 0x0062}), "\u0063\u00B6\u0062\u0062", 6,
+          4, 5);
+
+  // Invalid UTF-8 code-units in the input
+  ENC_LMT_WITH_EMPTY_SOURCE("", 0, 0, 0);
+  ENC_LMT(ARR({0xD83D}), "", 0, 0, 0);
+  ENC_LMT(ARR({0xD83D}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0xD83D}), DBRC, 2, 1, 2);
+  ENC_LMT(ARR({0xD83D}), TBRC, 3, 1, 3);
+  ENC_LMT(ARR({0xD83D}), TBRC, 4, 1, 3);
+
+  ENC_LMT(ARR({0xDCA9}), "", 0, 0, 0);
+  ENC_LMT(ARR({0xDCA9}), SBRC, 1, 1, 1);
+  ENC_LMT(ARR({0xDCA9}), DBRC, 2, 1, 2);
+  ENC_LMT(ARR({0xDCA9}), TBRC, 3, 1, 3);
+  ENC_LMT(ARR({0xDCA9}), TBRC, 4, 1, 3);
+
+  ENC_LMT(ARR({0x263A, 0xD83D}), "\u263A" TBRC, 6, 2, 6);
+  ENC_LMT(ARR({0x263A, 0xD83D}), "\u263A" TBRC, 7, 2, 6);
+
+  ENC_LMT(ARR({0x263A, 0xDCA9}), "\u263A" TBRC, 6, 2, 6);
+  ENC_LMT(ARR({0x263A, 0xDCA9}), "\u263A" TBRC, 7, 2, 6);
+
+  ENC_LMT(ARR({0x263A, 0xD83D, 0x00B6}), "\u263A" TBRC "\u00B6", 8, 3, 8);
+
+  // Misc. Tests
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x00A7}), "\u0063\u00B6\u00A7", 5, 3, 5);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x00A7}), "\u0063\u00B6" SBRC, 4, 3, 4);
+
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x00A7, 0x0062}), "\u0063\u00B6\u00A7\u0062", 6,
+          4, 6);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x00A7, 0x0062}), "\u0063\u00B6\u00A7", 5, 3, 5);
+
+  ENC_LMT(ARR({0x263A, 0x00A7, 0x0062}), "\u263A\u00A7\u0062", 6, 3, 6);
+  ENC_LMT(ARR({0x263A, 0x00A7, 0x0062}), "\u263A\u00A7", 5, 2, 5);
+
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x0062, 0x00A7}), "\u0063\u00B6\u0062\u00A7", 6,
+          4, 6);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x0062, 0x00A7}), "\u0063\u00B6\u0062" SBRC, 5,
+          4, 5);
+
+  ENC_LMT(ARR({0x263A, 0x0062, 0x00A7}), "\u263A\u0062\u00A7", 6, 3, 6);
+  ENC_LMT(ARR({0x263A, 0x0062, 0x00A7}), "\u263A\u0062" SBRC, 5, 3, 5);
+
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x2603}), "\u0063\u00B6\u2603", 6, 3, 6);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0x2603}), "\u0063\u00B6" DBRC, 5, 3, 5);
+
+  ENC_LMT(ARR({0x263A, 0x2603}), "\u263A\u2603", 6, 2, 6);
+  ENC_LMT(ARR({0x263A, 0x2603}), "\u263A" DBRC, 5, 2, 5);
+
+  ENC_LMT(ARR({0x0063, 0x00B6, 0xD83D}), "\u0063\u00B6" TBRC, 6, 3, 6);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0xD83D}), "\u0063\u00B6" DBRC, 5, 3, 5);
+
+  ENC_LMT(ARR({0x263A, 0xD83D}), "\u263A" TBRC, 6, 2, 6);
+  ENC_LMT(ARR({0x263A, 0xD83D}), "\u263A" DBRC, 5, 2, 5);
+
+  ENC_LMT(ARR({0x0063, 0x00B6, 0xDCA9}), "\u0063\u00B6" TBRC, 6, 3, 6);
+  ENC_LMT(ARR({0x0063, 0x00B6, 0xDCA9}), "\u0063\u00B6" DBRC, 5, 3, 5);
+
+  ENC_LMT(ARR({0x263A, 0xDCA9}), "\u263A" TBRC, 6, 2, 6);
+  ENC_LMT(ARR({0x263A, 0xDCA9}), "\u263A" DBRC, 5, 2, 5);
+}
+
+#undef P99_PROTECT
+#undef ARR
+#undef ENC
+#undef ENC_LMT
+#undef SBRC
+#undef SBRC
+#undef DBRC
+#undef TBRC
+
 int main() {
   TestUtf8Unit();
   TestIsUtf8();
   TestDecodeOneUtf8CodePoint();
+  TestUtf8ValidUpTo();
+  TestConvertUtf16toUtf8Partial();
+  TestConvertUtf16toUtf8();
+  TestConvertUtf8toUtf16();
+  TestConvertUtf8toUtf16WithoutReplacement();
+  TestValidUtf8();
+  TestUtf8Encode();
+  TestEncodeUtf8FromUtf16WithOutputLimit();
   return 0;
 }
 

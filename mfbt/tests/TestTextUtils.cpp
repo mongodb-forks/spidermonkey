@@ -4,10 +4,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "mozilla/ArrayUtils.h"
 #include "mozilla/Assertions.h"
 #include "mozilla/TextUtils.h"
 
+using mozilla::ArrayEqual;
+using mozilla::ArrayLength;
 using mozilla::AsciiAlphanumericToNumber;
+using mozilla::AsciiValidUpTo;
+using mozilla::ConvertAsciitoUtf16;
+using mozilla::EnsureUtf16ValiditySpan;
 using mozilla::IsAscii;
 using mozilla::IsAsciiAlpha;
 using mozilla::IsAsciiAlphanumeric;
@@ -15,6 +21,8 @@ using mozilla::IsAsciiDigit;
 using mozilla::IsAsciiLowercaseAlpha;
 using mozilla::IsAsciiNullTerminated;
 using mozilla::IsAsciiUppercaseAlpha;
+using mozilla::Span;
+using mozilla::Utf16ValidUpTo;
 
 static void TestIsAscii() {
   // char
@@ -1052,6 +1060,77 @@ static void TestIsAsciiDigit() {
   static_assert(!IsAsciiDigit(U'{'), "U'{' isn't an ASCII digit");
 }
 
+static void TestAsciiValidUpTo() {
+  static const size_t baseLen = strlen("abcdefghijklmnop");
+  static const char bytes0[] = "abcdefghijklmnopaabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes0, ArrayLength(bytes0))) ==
+                     ArrayLength(bytes0));
+  static const char bytes1[] = "abcdefghijklmnop\u00FEabcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes1, ArrayLength(bytes1))) ==
+                     baseLen);
+  static const char bytes2[] = "abcdefghijklmnop\u03B1abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes2, ArrayLength(bytes2))) ==
+                     baseLen);
+  static const char bytes23[] =
+      "abcdefghijklmnop\x80\xBF"
+      "abcdefghijklmnop";
+  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes23, ArrayLength(bytes23))) ==
+                     baseLen);
+}
+
+static void TestUtf16ValidUpTo() {
+  static const char16_t valid[] = {0, 0, 0, 0, 0,      0,      0,      0,
+                                   0, 0, 0, 0, 0x2603, 0xD83D, 0xDCA9, 0x00B6};
+  MOZ_RELEASE_ASSERT(Utf16ValidUpTo(Span(valid, ArrayLength(valid))) == 16);
+
+  static const char16_t loneHigh[] = {0, 0, 0, 0, 0, 0,      0,      0,
+                                      0, 0, 0, 0, 0, 0x2603, 0xD83D, 0x00B6};
+  MOZ_RELEASE_ASSERT(Utf16ValidUpTo(Span(loneHigh, ArrayLength(loneHigh))) ==
+                     14);
+
+  static const char16_t loneLow[] = {0, 0, 0, 0, 0, 0,      0,      0,
+                                     0, 0, 0, 0, 0, 0x2603, 0xDCA9, 0x00B6};
+  MOZ_RELEASE_ASSERT(Utf16ValidUpTo(Span(loneLow, ArrayLength(loneLow))) == 14);
+
+  static const char16_t loneHighAndEnd[] = {
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2603, 0x00B6, 0xD83D};
+  MOZ_RELEASE_ASSERT(
+      Utf16ValidUpTo(Span(loneHighAndEnd, ArrayLength(loneHighAndEnd))) == 15);
+}
+
+static void TestEnsureUtf16Validity() {
+  static char16_t src[] = {
+      0, 0xD83D, 0, 0, 0, 0xD83D, 0xDCA9, 0, 0, 0, 0, 0, 0, 0xDCA9, 0, 0,
+      0, 0,      0, 0, 0, 0,      0,      0, 0, 0, 0, 0, 0, 0,      0,
+  };
+  static const char16_t reference[] = {
+      0, 0xFFFD, 0, 0, 0, 0xD83D, 0xDCA9, 0, 0, 0, 0, 0, 0, 0xFFFD, 0, 0,
+      0, 0,      0, 0, 0, 0,      0,      0, 0, 0, 0, 0, 0, 0,      0,
+  };
+
+  EnsureUtf16ValiditySpan(Span(src, ArrayLength(src)));
+  MOZ_RELEASE_ASSERT(ArrayEqual(src, reference, ArrayLength(src)));
+}
+
+static void TestConvertAsciitoUtf16() {
+  static constexpr size_t srcLen = 128;
+  static char src[srcLen];
+  static constexpr size_t referenceLen = srcLen;
+  static char16_t reference[referenceLen];
+
+  for (size_t i = 0; i < srcLen; ++i) {
+    src[i] = static_cast<char>(i);
+    reference[i] = static_cast<char16_t>(i);
+  }
+
+  static constexpr size_t dstLen = srcLen;
+  char16_t dst[dstLen];
+  memset(dst, 0, dstLen * sizeof(char16_t));
+  ConvertAsciitoUtf16(Span(src, srcLen), Span(dst, dstLen));
+
+  MOZ_RELEASE_ASSERT(ArrayEqual(dst, reference, dstLen));
+}
+
 int main() {
   TestIsAscii();
   TestIsAsciiNullTerminated();
@@ -1061,4 +1140,8 @@ int main() {
   TestIsAsciiAlphanumeric();
   TestAsciiAlphanumericToNumber();
   TestIsAsciiDigit();
+  TestAsciiValidUpTo();
+  TestUtf16ValidUpTo();
+  TestEnsureUtf16Validity();
+  TestConvertAsciitoUtf16();
 }

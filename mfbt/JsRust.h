@@ -11,6 +11,8 @@
 #ifndef mozilla_JsRust_h
 #define mozilla_JsRust_h
 
+#define MOZ_PRETEND_NO_JSRUST 1  // Avoid all Rust dependencies.
+
 #if (defined(MOZ_HAS_MOZGLUE) || defined(MOZILLA_INTERNAL_API)) && \
     !defined(MOZ_PRETEND_NO_JSRUST)
 #  define MOZ_HAS_JSRUST() 1
