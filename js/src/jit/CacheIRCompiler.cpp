@@ -6388,6 +6388,7 @@ bool CacheIRCompiler::emitCompareBigIntStringResult(JSOp op,
 #ifndef _MSC_VER
       constexpr auto NotEqual = EqualityKind::NotEqual;
 #else
+      // The static_cast works around an internal compiler error in MSVC.
       constexpr auto NotEqual = static_cast<bool>(EqualityKind::NotEqual);
 #endif
       callvm.call<FnBigIntString, BigIntStringEqual<NotEqual>>();
