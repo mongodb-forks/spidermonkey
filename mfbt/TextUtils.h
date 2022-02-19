@@ -200,51 +200,7 @@ inline size_t AsciiValidUpTo(mozilla::Span<const char> aString) {
  * Returns the index of the first unpaired surrogate or
  * the length of the string if there are none.
  */
-inline size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
-  size_t length = aString.Length();
-  const char16_t* ptr = aString.Elements();
-  if (!length) {
-    return 0;
-  }
-  size_t offset = 0;
-  while (true) {
-    char16_t unit = ptr[offset];
-    size_t next = offset + 1;
-
-    char16_t unit_minus_surrogate_start = (unit - 0xD800);
-    if (unit_minus_surrogate_start > (0xDFFF - 0xD800)) {
-      // Not a surrogate
-      offset = next;
-      if (offset == length) {
-        return offset;
-      }
-      continue;
-    }
-
-    if (unit_minus_surrogate_start <= (0xDBFF - 0xD800)) {
-      // high surrogate
-      if (next < length) {
-        char16_t second = ptr[next];
-        char16_t second_minus_low_surrogate_start = (second - 0xDC00);
-        if (second_minus_low_surrogate_start <= (0xDFFF - 0xDC00)) {
-          // The next code unit is a low surrogate. Advance position.
-          offset = next + 1;
-          if (offset == length) {
-            return offset;
-          }
-          continue;
-        }
-        // The next code unit is not a low surrogate. Don't advance
-        // position and treat the high surrogate as unpaired.
-        // fall through
-      }
-      // Unpaired, fall through
-    }
-    // Unpaired surrogate
-    return offset;
-  }
-  return offset;
-}
+size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString);
 
 /**
  * Replaces unpaired surrogates with U+FFFD in the argument.

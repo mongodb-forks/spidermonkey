@@ -308,67 +308,7 @@ inline size_t UnsafeValidUtf8Lati1UpTo(mozilla::Span<const char> aString) {
  *
  * @param aString potentially-invalid UTF-8 string to scan
  */
-inline size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
-  size_t length = aString.Length();
-  const char* string = aString.Elements();
-  if (!length) return 0;
-
-  size_t i = 0;
-  while (i < length) {
-    const unsigned char* bytes =
-        reinterpret_cast<const unsigned char*>(string + i);
-    if (  // ASCII
-        bytes[0] <= 0x7F) {
-      i += 1;
-      continue;
-    }
-
-    if (length - i > 1 && (  // non-overlong 2-byte
-                              (0xC2 <= bytes[0] && bytes[0] <= 0xDF) &&
-                              (0x80 <= bytes[1] && bytes[1] <= 0xBF))) {
-      i += 2;
-      continue;
-    }
-
-    if (length - i > 2 &&
-        ((  // excluding overlongs
-             bytes[0] == 0xE0 && (0xA0 <= bytes[1] && bytes[1] <= 0xBF) &&
-             (0x80 <= bytes[2] && bytes[2] <= 0xBF)) ||
-         (  // straight 3-byte
-             ((0xE1 <= bytes[0] && bytes[0] <= 0xEC) || bytes[0] == 0xEE ||
-              bytes[0] == 0xEF) &&
-             (0x80 <= bytes[1] && bytes[1] <= 0xBF) &&
-             (0x80 <= bytes[2] && bytes[2] <= 0xBF)) ||
-         (  // excluding surrogates
-             bytes[0] == 0xED && (0x80 <= bytes[1] && bytes[1] <= 0x9F) &&
-             (0x80 <= bytes[2] && bytes[2] <= 0xBF)))) {
-      i += 3;
-      continue;
-    }
-
-    if (length - i > 3 &&
-        ((  // planes 1-3
-             bytes[0] == 0xF0 && (0x90 <= bytes[1] && bytes[1] <= 0xBF) &&
-             (0x80 <= bytes[2] && bytes[2] <= 0xBF) &&
-             (0x80 <= bytes[3] && bytes[3] <= 0xBF)) ||
-         (  // planes 4-15
-             (0xF1 <= bytes[0] && bytes[0] <= 0xF3) &&
-             (0x80 <= bytes[1] && bytes[1] <= 0xBF) &&
-             (0x80 <= bytes[2] && bytes[2] <= 0xBF) &&
-             (0x80 <= bytes[3] && bytes[3] <= 0xBF)) ||
-         (  // plane 16
-             bytes[0] == 0xF4 && (0x80 <= bytes[1] && bytes[1] <= 0x8F) &&
-             (0x80 <= bytes[2] && bytes[2] <= 0xBF) &&
-             (0x80 <= bytes[3] && bytes[3] <= 0xBF)))) {
-      i += 4;
-      continue;
-    }
-
-    return i;
-  }
-
-  return length;
-}
+size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString);
 
 /**
  * Returns the index of first byte that starts an invalid byte

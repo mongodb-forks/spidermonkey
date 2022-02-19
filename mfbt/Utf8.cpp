@@ -4,6 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "mozilla/Latin1.h"
 #include "mozilla/Maybe.h"
 #include "mozilla/TextUtils.h"
 #include "mozilla/Types.h"
@@ -12,6 +13,10 @@
 #include <functional>  // for std::function
 #include <stddef.h>
 #include <stdint.h>
+
+////////////////////////////////////////////////////////////
+// Utf8.h
+////////////////////////////////////////////////////////////
 
 MFBT_API bool mozilla::detail::IsValidUtf8(const void* aCodeUnits,
                                            size_t aCount) {
@@ -42,11 +47,11 @@ MFBT_API bool mozilla::detail::IsValidUtf8(const void* aCodeUnits,
 #  include <memory>          // for std::shared_ptr
 #  include "unicode/ucnv.h"  // for UConverter
 
-mozilla::Tuple<std::shared_ptr<UConverter>, UErrorCode> _getUConverter() {
+mozilla::Tuple<UConverter*, UErrorCode> _getUConverter() {
   static thread_local UErrorCode uConverterErr = U_ZERO_ERROR;
   static thread_local std::shared_ptr<UConverter> utf8Cnv(
       ucnv_open("UTF-8", &uConverterErr), ucnv_close);
-  return mozilla::MakeTuple(utf8Cnv, uConverterErr);
+  return mozilla::MakeTuple(utf8Cnv.get(), uConverterErr);
 }
 
 mozilla::Tuple<size_t, size_t> mozilla::ConvertUtf16toUtf8Partial(
@@ -59,10 +64,10 @@ mozilla::Tuple<size_t, size_t> mozilla::ConvertUtf16toUtf8Partial(
   const char* dstLimit = dstPtr + aDest.Length();
 
   // Thread-local instance of a UTF-8 converter
-  std::shared_ptr<UConverter> utf8Cnv;
+  UConverter* utf8Conv;
   UErrorCode uConverterErr;
-  Tie(utf8Cnv, uConverterErr) = _getUConverter();
-  UConverter* utf8Conv = utf8Cnv.get();
+  Tie(utf8Conv, uConverterErr) = _getUConverter();
+
   if (MOZ_LIKELY(U_SUCCESS(uConverterErr) && utf8Conv != NULL)) {
     UErrorCode err = U_ZERO_ERROR;
     do {
@@ -143,10 +148,9 @@ size_t mozilla::ConvertUtf8toUtf16(mozilla::Span<const char> aSource,
   const char16_t* dstLimit = dstPtr + aDest.Length();
 
   // Thread-local instance of a UTF-8 converter
-  std::shared_ptr<UConverter> utf8Cnv;
+  UConverter* utf8Conv;
   UErrorCode uConverterErr;
-  Tie(utf8Cnv, uConverterErr) = _getUConverter();
-  UConverter* utf8Conv = utf8Cnv.get();
+  Tie(utf8Conv, uConverterErr) = _getUConverter();
 
   if (MOZ_LIKELY(U_SUCCESS(uConverterErr) && utf8Conv != NULL)) {
     UErrorCode err = U_ZERO_ERROR;
@@ -182,10 +186,9 @@ size_t mozilla::UnsafeConvertValidUtf8toUtf16(mozilla::Span<const char> aSource,
   MOZ_ASSERT(dstLen >= srcLen);
 
   // Thread-local instance of a UTF-8 converter
-  std::shared_ptr<UConverter> utf8Cnv;
+  UConverter* utf8Conv;
   UErrorCode uConverterErr;
-  Tie(utf8Cnv, uConverterErr) = _getUConverter();
-  UConverter* utf8Conv = utf8Cnv.get();
+  Tie(utf8Conv, uConverterErr) = _getUConverter();
 
   if (MOZ_LIKELY(U_SUCCESS(uConverterErr) && utf8Conv != NULL)) {
     UErrorCode err = U_ZERO_ERROR;
@@ -198,6 +201,122 @@ size_t mozilla::UnsafeConvertValidUtf8toUtf16(mozilla::Span<const char> aSource,
   }
 
   return static_cast<size_t>(dstPtr - dstOrigPtr);
+}
+
+////////////////////////////////////////////////////////////
+// TextUtils.h
+////////////////////////////////////////////////////////////
+
+size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
+  size_t length = aString.Length();
+  const char16_t* ptr = aString.Elements();
+  if (!length) {
+    return 0;
+  }
+  size_t offset = 0;
+  while (true) {
+    char16_t unit = ptr[offset];
+    size_t next = offset + 1;
+
+    char16_t unit_minus_surrogate_start = (unit - 0xD800);
+    if (unit_minus_surrogate_start > (0xDFFF - 0xD800)) {
+      // Not a surrogate
+      offset = next;
+      if (offset == length) {
+        return offset;
+      }
+      continue;
+    }
+
+    if (unit_minus_surrogate_start <= (0xDBFF - 0xD800)) {
+      // high surrogate
+      if (next < length) {
+        char16_t second = ptr[next];
+        char16_t second_minus_low_surrogate_start = (second - 0xDC00);
+        if (second_minus_low_surrogate_start <= (0xDFFF - 0xDC00)) {
+          // The next code unit is a low surrogate. Advance position.
+          offset = next + 1;
+          if (offset == length) {
+            return offset;
+          }
+          continue;
+        }
+        // The next code unit is not a low surrogate. Don't advance
+        // position and treat the high surrogate as unpaired.
+        // fall through
+      }
+      // Unpaired, fall through
+    }
+    // Unpaired surrogate
+    return offset;
+  }
+  return offset;
+}
+
+////////////////////////////////////////////////////////////
+// Latin1.h
+////////////////////////////////////////////////////////////
+
+size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
+  size_t length = aString.Length();
+  const char* string = aString.Elements();
+  if (!length) return 0;
+
+  size_t i = 0;
+  while (i < length) {
+    const unsigned char* bytes =
+        reinterpret_cast<const unsigned char*>(string + i);
+    if (  // ASCII
+        bytes[0] <= 0x7F) {
+      i += 1;
+      continue;
+    }
+
+    if (length - i > 1 && (  // non-overlong 2-byte
+                              (0xC2 <= bytes[0] && bytes[0] <= 0xDF) &&
+                              (0x80 <= bytes[1] && bytes[1] <= 0xBF))) {
+      i += 2;
+      continue;
+    }
+
+    if (length - i > 2 &&
+        ((  // excluding overlongs
+             bytes[0] == 0xE0 && (0xA0 <= bytes[1] && bytes[1] <= 0xBF) &&
+             (0x80 <= bytes[2] && bytes[2] <= 0xBF)) ||
+         (  // straight 3-byte
+             ((0xE1 <= bytes[0] && bytes[0] <= 0xEC) || bytes[0] == 0xEE ||
+              bytes[0] == 0xEF) &&
+             (0x80 <= bytes[1] && bytes[1] <= 0xBF) &&
+             (0x80 <= bytes[2] && bytes[2] <= 0xBF)) ||
+         (  // excluding surrogates
+             bytes[0] == 0xED && (0x80 <= bytes[1] && bytes[1] <= 0x9F) &&
+             (0x80 <= bytes[2] && bytes[2] <= 0xBF)))) {
+      i += 3;
+      continue;
+    }
+
+    if (length - i > 3 &&
+        ((  // planes 1-3
+             bytes[0] == 0xF0 && (0x90 <= bytes[1] && bytes[1] <= 0xBF) &&
+             (0x80 <= bytes[2] && bytes[2] <= 0xBF) &&
+             (0x80 <= bytes[3] && bytes[3] <= 0xBF)) ||
+         (  // planes 4-15
+             (0xF1 <= bytes[0] && bytes[0] <= 0xF3) &&
+             (0x80 <= bytes[1] && bytes[1] <= 0xBF) &&
+             (0x80 <= bytes[2] && bytes[2] <= 0xBF) &&
+             (0x80 <= bytes[3] && bytes[3] <= 0xBF)) ||
+         (  // plane 16
+             bytes[0] == 0xF4 && (0x80 <= bytes[1] && bytes[1] <= 0x8F) &&
+             (0x80 <= bytes[2] && bytes[2] <= 0xBF) &&
+             (0x80 <= bytes[3] && bytes[3] <= 0xBF)))) {
+      i += 4;
+      continue;
+    }
+
+    return i;
+  }
+
+  return length;
 }
 
 #endif  // !MOZ_HAS_JSRUST()
