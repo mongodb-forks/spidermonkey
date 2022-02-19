@@ -48,7 +48,7 @@ using RootEnum = RootedValueMap::Enum;
 // ConcreteTraceable type are actually used at runtime.
 struct ConcreteTraceable {
   ConcreteTraceable() = delete;
-  void trace(JSTracer*) = delete;
+  void trace(JSTracer*) { MOZ_CRASH("This path is unreachable."); }
 };
 
 template <typename T>

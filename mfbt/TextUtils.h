@@ -43,6 +43,15 @@ constexpr bool IsAscii(char aChar) {
   return IsAscii(static_cast<unsigned char>(aChar));
 }
 
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811
+
+/** Returns true iff |aChar| is ASCII, i.e. in the range [0, 0x80). */
+constexpr bool IsAscii(char8_t aChar) {
+  return IsAscii(static_cast<unsigned char>(aChar));
+}
+
+#endif
+
 /** Returns true iff |aChar| is ASCII, i.e. in the range [0, 0x80). */
 constexpr bool IsAscii(char16_t aChar) { return aChar < 0x80; }
 

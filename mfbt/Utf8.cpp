@@ -219,11 +219,6 @@ size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
     size_t next = offset + 1;
 
     char16_t unit_minus_surrogate_start = (unit - 0xD800);
-
-    // It's possible for 'unit' to be less than 0xD800. In that case, 'unit_minus_surrogate_start'
-    // underflows, but still the size of minimum underflow (when unit is 0 (i.e.,
-    // unit_minus_surrogate_start = 10240)) is way higher than (0xDFFF - 0xD800 = 2047). Then, these
-    // cases falls into the body of the following branch.
     if (unit_minus_surrogate_start > (0xDFFF - 0xD800)) {
       // Not a surrogate
       offset = next;
@@ -262,7 +257,7 @@ size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
 // Latin1.h
 ////////////////////////////////////////////////////////////
 
-inline size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
+size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
   size_t length = aString.Length();
   const char* string = aString.Elements();
   if (!length) return 0;
