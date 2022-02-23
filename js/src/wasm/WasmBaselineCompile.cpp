@@ -2267,7 +2267,7 @@ class BaseStackFrame final : public BaseStackFrameAllocator {
     union {
       float f32;
       int32_t i32;
-    } bits{imm};  // Note: the default constructor uses the first (f32) member.
+    } bits{imm};
     static_assert(sizeof(bits) == 4);
     // Do not store 4 bytes if StackSizeOfFloat == 8.  It's probably OK to do
     // so, but it costs little to store something predictable.
@@ -2283,7 +2283,7 @@ class BaseStackFrame final : public BaseStackFrameAllocator {
     union {
       double f64;
       int64_t i64;
-    } bits{imm};  // Note: the default constructor uses the first (f64) member.
+    } bits{imm};
     static_assert(sizeof(bits) == 8);
     store64BitsToStack(bits.i64, destHeight, temp);
   }
