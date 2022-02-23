@@ -21,7 +21,8 @@
 #  include <winnt.h>  // For InterlockedCompareExchange64
 #endif
 
-using namespace js::wasm;
+namespace js {
+namespace wasm {
 
 void JumpTables::setJitEntryIfNull(size_t i, void* target) const {
   // Make sure that compare-and-write is atomic; see comment in
@@ -37,3 +38,6 @@ void JumpTables::setJitEntryIfNull(size_t i, void* target) const {
                                     __ATOMIC_RELAXED);
 #endif
 }
+
+}  // namespace wasm
+}  // namespace js

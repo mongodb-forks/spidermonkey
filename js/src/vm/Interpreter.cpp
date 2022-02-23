@@ -1888,26 +1888,26 @@ static MOZ_NEVER_INLINE JS_HAZ_JSNATIVE_CALLER bool Interpret(JSContext* cx,
  * indirect goto (aka a threaded interpreter), which is technically
  * non-standard but is supported by many compilers.
  */
-#  define INTERPRETER_LOOP()
-#  define CASE_NOT_COMPUTED(OP) label_##OP:
-#  define CASE(OP) label_##OP:
-#  define DEFAULT() \
+#define INTERPRETER_LOOP()
+#define CASE_NOT_COMPUTED(OP) label_##OP:
+#define CASE(OP) label_##OP:
+#define DEFAULT() \
   label_default:
-#  define DISPATCH_TO(OP) goto* addresses[(OP)]
+#define DISPATCH_TO(OP) goto* addresses[(OP)]
 
-#  define LABEL(X) (&&label_##X)
+#define LABEL(X) (&&label_##X)
 
   // Use addresses instead of offsets to optimize for runtime speed over
   // load-time relocation overhead.
   static const void* const addresses[EnableInterruptsPseudoOpcode + 1] = {
-#  define OPCODE_LABEL(op, ...) LABEL(op),
+#define OPCODE_LABEL(op, ...) LABEL(op),
       FOR_EACH_OPCODE(OPCODE_LABEL)
-#  undef OPCODE_LABEL
-#  define TRAILING_LABEL(v)                                                    \
-    ((v) == EnableInterruptsPseudoOpcode ? LABEL(EnableInterruptsPseudoOpcode) \
-                                         : LABEL(default)),
+#undef OPCODE_LABEL
+#define TRAILING_LABEL(v)                                                    \
+  ((v) == EnableInterruptsPseudoOpcode ? LABEL(EnableInterruptsPseudoOpcode) \
+                                       : LABEL(default)),
           FOR_EACH_TRAILING_UNUSED_OPCODE(TRAILING_LABEL)
-#  undef TRAILING_LABEL
+#undef TRAILING_LABEL
   };
 #else  // End of case where computed goto is available.
 /*
@@ -1916,13 +1916,13 @@ static MOZ_NEVER_INLINE JS_HAZ_JSNATIVE_CALLER bool Interpret(JSContext* cx,
  * indirect goto statements, but it does not require any language extensions
  * and should work on any standard-compliant C++ compiler.
  */
-#  define INTERPRETER_LOOP() \
+#define INTERPRETER_LOOP()   \
   the_switch:                \
     switch (switchOp)
-#  define CASE_NOT_COMPUTED(OP) case OP:
-#  define CASE(OP) case static_cast<jsbytecode>(JSOp::OP):
-#  define DEFAULT() default:
-#  define DISPATCH_TO(OP) \
+#define CASE_NOT_COMPUTED(OP) case OP:
+#define CASE(OP) case static_cast<jsbytecode>(JSOp::OP):
+#define DEFAULT() default:
+#define DISPATCH_TO(OP)   \
     JS_BEGIN_MACRO        \
       switchOp = (OP);    \
       goto the_switch;    \
