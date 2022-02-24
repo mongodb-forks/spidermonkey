@@ -71,6 +71,11 @@
 #include "mozilla/Compiler.h"
 #include "mozilla/DebugOnly.h"
 
+#include <version>  // For __cpp_lib_endian
+#if defined(__cpp_lib_endian)
+#  include <bit>
+#endif
+
 #include <stdint.h>
 #include <string.h>
 
@@ -95,6 +100,14 @@
 #    define MOZ_BIG_ENDIAN() 1
 #  else
 #    error "Can't handle mixed-endian architectures"
+#  endif
+#elif defined(_MSC_VER)
+// As of this writing, MSVC only targets little-endian architectures.
+#  define MOZ_LITTLE_ENDIAN() 1
+#  define MOZ_BIG_ENDIAN() 0
+#  if defined(__cpp_lib_endian)
+// In C++20, we have a future-proof endianness check available.
+static_assert(std::endian::native == std::endian::little);
 #  endif
 #else
 #  error "Don't know how to determine endianness"
