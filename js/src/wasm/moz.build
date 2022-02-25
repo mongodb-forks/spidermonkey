@@ -48,6 +48,9 @@ UNIFIED_SOURCES += [
     "WasmValType.cpp",
     "WasmValue.cpp",
 ]
+SOURCES += [
+    "WasmCode-platform.cpp",
+]
 
 # We don't support signals for wasi yet.
 if CONFIG["OS_ARCH"] != "WASI":

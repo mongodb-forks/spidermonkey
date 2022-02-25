@@ -257,7 +257,7 @@ size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
 // Latin1.h
 ////////////////////////////////////////////////////////////
 
-size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
+size_t mozilla::Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
   size_t length = aString.Length();
   const char* string = aString.Elements();
   if (!length) return 0;
