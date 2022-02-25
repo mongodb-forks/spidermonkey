@@ -71,8 +71,7 @@
 #include "mozilla/Compiler.h"
 #include "mozilla/DebugOnly.h"
 
-#include <version>  // For __cpp_lib_endian
-#if defined(__cpp_lib_endian)
+#if __has_include(<bit>)
 #  include <bit>
 #endif
 
