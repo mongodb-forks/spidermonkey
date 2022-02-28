@@ -131,7 +131,7 @@ size_t mozilla::ConvertUtf16toUtf8(mozilla::Span<const char16_t> aSource,
   MOZ_ASSERT(aDest.Length() >= aSource.Length() * 3);
   size_t read;
   size_t written;
-  Tie(read, written) = ConvertUtf16toUtf8Partial(aSource, aDest);
+  Tie(read, written) = mozilla::ConvertUtf16toUtf8Partial(aSource, aDest);
   MOZ_ASSERT(read == aSource.Length());
   return written;
 }
@@ -207,7 +207,7 @@ size_t mozilla::UnsafeConvertValidUtf8toUtf16(mozilla::Span<const char> aSource,
 // TextUtils.h
 ////////////////////////////////////////////////////////////
 
-size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
+size_t mozilla::Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
   size_t length = aString.Length();
   const char16_t* ptr = aString.Elements();
   if (!length) {
@@ -257,7 +257,7 @@ size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
 // Latin1.h
 ////////////////////////////////////////////////////////////
 
-size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
+size_t mozilla::Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
   size_t length = aString.Length();
   const char* string = aString.Elements();
   if (!length) return 0;
