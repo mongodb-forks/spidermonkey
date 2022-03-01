@@ -48,16 +48,7 @@ using RootEnum = RootedValueMap::Enum;
 // ConcreteTraceable type are actually used at runtime.
 struct ConcreteTraceable {
   ConcreteTraceable() = delete;
-#ifdef _MSC_VER
-  // There should be no callers to ConcreteTraceable::trace(). In clang/gcc, it
-  // is possible to ensure that using the "= delete" syntax, but MSVC is more
-  // aggressive about what is considered a caller.
-  void trace(JSTracer*) {
-    MOZ_ASSERT_UNREACHABLE();
-  }
-#else
-  void trace(JSTracer*) = delete;
-#endif
+  void trace(JSTracer*) { MOZ_CRASH("This path is unreachable."); }
 };
 
 template <typename T>
