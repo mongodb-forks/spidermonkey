@@ -264,8 +264,12 @@ struct MaybeStorage<T, false> : MaybeStorageBase<T> {
   MaybeStorage& operator=(MaybeStorage&&) { return *this; }
 
   ~MaybeStorage() {
+    // This alias works around a compiler bug described here:
+    // https://developercommunity.visualstudio.com/t/Explicit-destructor-call-inside-a-templa/1470165
+    using alias_of_T = T;
+
     if (mIsSome) {
-      this->addr()->T::~T();
+      this->addr()->alias_of_T::~alias_of_T();
     }
   }
 };
