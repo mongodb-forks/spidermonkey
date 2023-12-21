@@ -2450,6 +2450,16 @@ template bool BigIntStringEqual<EqualityKind::NotEqual>(JSContext* cx,
                                                         HandleString y,
                                                         bool* res);
 
+bool InstantiatedBigIntStringEqual(JSContext* cx, HandleBigInt x,
+                                   HandleString y, bool* res) {
+  return BigIntStringEqual<EqualityKind::Equal>(cx, x, y, res);
+}
+
+bool InstantiatedBigIntStringNotEqual(JSContext* cx, HandleBigInt x,
+                                      HandleString y, bool* res) {
+  return BigIntStringEqual<EqualityKind::NotEqual>(cx, x, y, res);
+}
+
 template <ComparisonKind Kind>
 bool BigIntStringCompare(JSContext* cx, HandleBigInt x, HandleString y,
                          bool* res) {
@@ -2472,6 +2482,16 @@ template bool BigIntStringCompare<ComparisonKind::LessThan>(JSContext* cx,
 template bool BigIntStringCompare<ComparisonKind::GreaterThanOrEqual>(
     JSContext* cx, HandleBigInt x, HandleString y, bool* res);
 
+bool InstantiatedBigIntStringLessThan(JSContext* cx, HandleBigInt x,
+                                      HandleString y, bool* res) {
+  return BigIntStringCompare<ComparisonKind::LessThan>(cx, x, y, res);
+}
+
+bool InstantiatedBigIntStringGreaterThanOrEqual(JSContext* cx, HandleBigInt x,
+                                                HandleString y, bool* res) {
+  return BigIntStringCompare<ComparisonKind::GreaterThanOrEqual>(cx, x, y, res);
+}
+
 template <ComparisonKind Kind>
 bool StringBigIntCompare(JSContext* cx, HandleString x, HandleBigInt y,
                          bool* res) {
@@ -2493,6 +2513,16 @@ template bool StringBigIntCompare<ComparisonKind::LessThan>(JSContext* cx,
                                                             bool* res);
 template bool StringBigIntCompare<ComparisonKind::GreaterThanOrEqual>(
     JSContext* cx, HandleString x, HandleBigInt y, bool* res);
+
+bool InstantiatedStringBigIntLessThan(JSContext* cx, HandleString x,
+                                      HandleBigInt y, bool* res) {
+  return StringBigIntCompare<ComparisonKind::LessThan>(cx, x, y, res);
+}
+
+bool InstantiatedStringBigIntGreaterThanOrEqual(JSContext* cx, HandleString x,
+                                                HandleBigInt y, bool* res) {
+  return StringBigIntCompare<ComparisonKind::GreaterThanOrEqual>(cx, x, y, res);
+}
 
 BigInt* BigIntAsIntN(JSContext* cx, HandleBigInt x, int32_t bits) {
   MOZ_ASSERT(bits >= 0);
