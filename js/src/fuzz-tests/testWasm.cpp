@@ -51,7 +51,8 @@ struct PrefsSetters {
 };
 
 static int testWasmInit(int* argc, char*** argv) {
-  if (!wasm::HasSupport(gCx)) {
+  bool wasmHasSupport = WASM_HAS_SUPPORT(gCx);
+  if (!wasmHasSupport || !wasm::HasSupport(gCx)) {
     MOZ_CRASH("Wasm is not supported");
   }
 
