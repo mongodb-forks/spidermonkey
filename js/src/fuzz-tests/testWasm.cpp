@@ -37,7 +37,8 @@ size_t gluesmith(uint8_t* data, size_t size, uint8_t* out, size_t maxsize);
 }
 
 static int testWasmInit(int* argc, char*** argv) {
-  if (!wasm::HasSupport(gCx)) {
+  bool wasmHasSupport = WASM_HAS_SUPPORT(gCx);
+  if (!wasmHasSupport || !wasm::HasSupport(gCx)) {
     MOZ_CRASH("Wasm is not supported");
   }
 
