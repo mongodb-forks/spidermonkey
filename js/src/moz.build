@@ -49,7 +49,6 @@ with Files("builtin/intl/*"):
 
 if not CONFIG["JS_DISABLE_SHELL"]:
     DIRS += [
-        "rust",
         "shell",
     ]
 

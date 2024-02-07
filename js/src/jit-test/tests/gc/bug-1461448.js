@@ -1,5 +1,4 @@
-// |jit-test| skip-if: helperThreadCount() === 0
-
+// |jit-test| skip-if: !wasmIsSupported() || helperThreadCount() === 0
 gczeal(0);
 
 let lfPreamble = `
