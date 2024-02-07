@@ -1050,7 +1050,7 @@
 # nsXPLookAndFeel::GenericDarkColor for Linktext.
 - name: browser.anchor_color.dark
   type: String
-  value: "#00CADB"
+  value: "#8C8CFF"
   mirror: never
 
 # See http://dev.w3.org/html5/spec/forms.html#attr-fe-autofocus
@@ -3606,7 +3606,7 @@
 # BrowsingContext. This includes calls to History and Location APIs.
 - name: dom.navigation.navigationRateLimit.count
   type: uint32_t
-  value: 1000
+  value: 200
   mirror: always
 
 # Time span in seconds for location change rate limit.
@@ -3648,13 +3648,6 @@
 
 # Whether the codebase attribute in an <object> is used as the base URI.
 - name: dom.object_embed.codebase.enabled
-  type: bool
-  value: false
-  mirror: always
-
-# Whether the type attribute in an <object> is used as a hint for the Content-Type
-# of the loading document.
-- name: dom.object_embed.type_hint.enabled
   type: bool
   value: false
   mirror: always
@@ -5447,17 +5440,6 @@
   value: @IS_EARLY_BETA_OR_EARLIER@
   mirror: always
 
-# Is WebGPU allowed to run in the parent process? This should be false if
-# on a platform that supports the GPU process, else true.
-- name: dom.webgpu.allow-in-parent
-  type: bool
-#if defined(XP_WIN) || defined(ANDROID)
-  value: false
-#else
-  value: true
-#endif
-  mirror: once
-
 # Comma-separated list of wgpu backend names to permit in WebGPU adapters.
 #
 # If non-empty, this is parsed by `wgpu_core::instance::parse_backends_from_comma_list` to
@@ -5522,11 +5504,6 @@
 - name: dom.webnotifications.allowcrossoriginiframe
   type: RelaxedAtomicBool
   value: false
-  mirror: always
-
-- name: dom.webnotifications.forbid_nested_first_party.enabled
-  type: RelaxedAtomicBool
-  value: true
   mirror: always
 
 - name: dom.webnotifications.enabled
@@ -6526,15 +6503,6 @@
   value: false
 #endif
   mirror: always
-
-- name: gfx.canvas.accelerated.allow-in-parent
-  type: bool
-#if defined(XP_WIN) || defined(ANDROID)
-  value: false
-#else
-  value: true
-#endif
-  mirror: once
 
 # Whether to attempt to enable Accelerated Canvas2D regardless of blocklisting.
 - name: gfx.canvas.accelerated.force-enabled
@@ -8216,7 +8184,7 @@
 # a natural width and/or height.
 - name: image.natural-size-fallback.enabled
   type: RelaxedAtomicBool
-  value: true
+  value: @IS_NIGHTLY_BUILD@
   mirror: always
 
 # Whether we record SVG images as blobs or not.
@@ -13049,13 +13017,6 @@
   value: false
   mirror: always
 
-# When true, the hashing of the certificate will be done with the hashing
-# algorithm specified in the cert instead of SHA256.
-- name: network.auth.sspi_detect_hash
-  type: RelaxedAtomicBool
-  value: true
-  mirror: always
-
 # See the full list of values in nsICookieService.idl.
 - name: network.cookie.cookieBehavior
   type: RelaxedAtomicInt32
@@ -13474,12 +13435,6 @@
     login.microsoftonline.us,
     login-us.microsoftonline.com
   mirror: never
-
-# Whether to fallback to old mime-type parser when CMimeType::Parse fails
-- name: network.http.fallback_to_net_parse_ct
-  type: RelaxedAtomicBool
-  value: true
-  mirror: always
 
 # The factor by which to increase the keepalive timeout when the
 # NS_HTTP_LARGE_KEEPALIVE flag is used for a connection
@@ -16747,8 +16702,8 @@
   mirror: always
   rust: true
 
-# Skip direct attestation consent prompts
-- name: security.webauthn.always_allow_direct_attestation
+# Skip direct attestation consent prompts (for tests).
+- name: security.webauth.webauthn_testing_allow_direct_attestation
   type: RelaxedAtomicBool
   value: false
   mirror: always
