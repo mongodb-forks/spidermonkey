@@ -21,7 +21,6 @@ using mozilla::IsUtf8Latin1;
 using mozilla::LossyConvertUtf16toLatin1;
 using mozilla::LossyConvertUtf8toLatin1;
 using mozilla::Span;
-using mozilla::Tie;
 using mozilla::UnsafeIsValidUtf8Latin1;
 using mozilla::UnsafeValidUtf8Lati1UpTo;
 using mozilla::Utf8Latin1UpTo;
@@ -345,8 +344,8 @@ static void TestConvertLatin1ToUtf8Partial() {
 
   size_t read;
   size_t written;
-  Tie(read, written) = ConvertLatin1toUtf8Partial(Span(src, ArrayLength(src)),
-                                                  Span(dst, dstLen));
+  std::tie(read, written) = ConvertLatin1toUtf8Partial(Span(src, ArrayLength(src)),
+                                                       Span(dst, dstLen));
   MOZ_RELEASE_ASSERT(read == 1);
   MOZ_RELEASE_ASSERT(written == 1);
 }

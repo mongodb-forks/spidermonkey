@@ -44,17 +44,17 @@ MFBT_API bool mozilla::detail::IsValidUtf8(const void* aCodeUnits,
 }
 
 #if !MOZ_HAS_JSRUST()
-#  include <memory>          // for std::shared_ptr
-#  include "unicode/ucnv.h"  // for UConverter
+#include <memory>          // for std::shared_ptr
+#include "unicode/ucnv.h"  // for UConverter
 
-mozilla::Tuple<UConverter*, UErrorCode> _getUConverter() {
+std::tuple<UConverter*, UErrorCode> _getUConverter() {
   static thread_local UErrorCode uConverterErr = U_ZERO_ERROR;
   static thread_local std::shared_ptr<UConverter> utf8Cnv(
       ucnv_open("UTF-8", &uConverterErr), ucnv_close);
-  return mozilla::MakeTuple(utf8Cnv.get(), uConverterErr);
+  return std::make_tuple(utf8Cnv.get(), uConverterErr);
 }
 
-mozilla::Tuple<size_t, size_t> mozilla::ConvertUtf16toUtf8Partial(
+std::tuple<size_t, size_t> mozilla::ConvertUtf16toUtf8Partial(
     mozilla::Span<const char16_t> aSource, mozilla::Span<char> aDest) {
   const char16_t* srcOrigPtr = aSource.Elements();
   const char16_t* srcPtr = srcOrigPtr;
@@ -66,7 +66,7 @@ mozilla::Tuple<size_t, size_t> mozilla::ConvertUtf16toUtf8Partial(
   // Thread-local instance of a UTF-8 converter
   UConverter* utf8Conv;
   UErrorCode uConverterErr;
-  Tie(utf8Conv, uConverterErr) = _getUConverter();
+  std::tie(utf8Conv, uConverterErr) = _getUConverter();
 
   if (MOZ_LIKELY(U_SUCCESS(uConverterErr) && utf8Conv != NULL)) {
     UErrorCode err = U_ZERO_ERROR;
@@ -106,7 +106,7 @@ mozilla::Tuple<size_t, size_t> mozilla::ConvertUtf16toUtf8Partial(
             case 0:
               break;
           }
-          return mozilla::MakeTuple(static_cast<size_t>(srcPtr - srcOrigPtr),
+          return std::make_tuple(static_cast<size_t>(srcPtr - srcOrigPtr),
                                     static_cast<size_t>(dstPtr - dstOrigPtr));
         } else {
           // We do not need to handle it, as the problematic character will be
@@ -122,16 +122,16 @@ mozilla::Tuple<size_t, size_t> mozilla::ConvertUtf16toUtf8Partial(
     } while (srcPtr < srcLimit && dstPtr < dstLimit);
   }
 
-  return mozilla::MakeTuple(static_cast<size_t>(srcPtr - srcOrigPtr),
+  return std::make_tuple(static_cast<size_t>(srcPtr - srcOrigPtr),
                             static_cast<size_t>(dstPtr - dstOrigPtr));
 }
 
 size_t mozilla::ConvertUtf16toUtf8(mozilla::Span<const char16_t> aSource,
                                    mozilla::Span<char> aDest) {
   MOZ_ASSERT(aDest.Length() >= aSource.Length() * 3);
-  size_t read;
-  size_t written;
-  Tie(read, written) = ConvertUtf16toUtf8Partial(aSource, aDest);
+  size_t read{0};
+  size_t written{0};
+  std::tie(read, written) = mozilla::ConvertUtf16toUtf8Partial(aSource, aDest);
   MOZ_ASSERT(read == aSource.Length());
   return written;
 }
@@ -150,7 +150,7 @@ size_t mozilla::ConvertUtf8toUtf16(mozilla::Span<const char> aSource,
   // Thread-local instance of a UTF-8 converter
   UConverter* utf8Conv;
   UErrorCode uConverterErr;
-  Tie(utf8Conv, uConverterErr) = _getUConverter();
+  std::tie(utf8Conv, uConverterErr) = _getUConverter();
 
   if (MOZ_LIKELY(U_SUCCESS(uConverterErr) && utf8Conv != NULL)) {
     UErrorCode err = U_ZERO_ERROR;
@@ -188,7 +188,7 @@ size_t mozilla::UnsafeConvertValidUtf8toUtf16(mozilla::Span<const char> aSource,
   // Thread-local instance of a UTF-8 converter
   UConverter* utf8Conv;
   UErrorCode uConverterErr;
-  Tie(utf8Conv, uConverterErr) = _getUConverter();
+  std::tie(utf8Conv, uConverterErr) = _getUConverter();
 
   if (MOZ_LIKELY(U_SUCCESS(uConverterErr) && utf8Conv != NULL)) {
     UErrorCode err = U_ZERO_ERROR;
@@ -207,7 +207,7 @@ size_t mozilla::UnsafeConvertValidUtf8toUtf16(mozilla::Span<const char> aSource,
 // TextUtils.h
 ////////////////////////////////////////////////////////////
 
-size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
+size_t mozilla::Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
   size_t length = aString.Length();
   const char16_t* ptr = aString.Elements();
   if (!length) {
@@ -257,7 +257,7 @@ size_t Utf16ValidUpTo(mozilla::Span<const char16_t> aString) {
 // Latin1.h
 ////////////////////////////////////////////////////////////
 
-size_t Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
+size_t mozilla::Utf8ValidUpToIndex(mozilla::Span<const char> aString) {
   size_t length = aString.Length();
   const char* string = aString.Elements();
   if (!length) return 0;

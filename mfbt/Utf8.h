@@ -416,7 +416,7 @@ inline mozilla::Maybe<size_t> ConvertUtf8toUtf16WithoutReplacement(
  * sequence or the length of the string if there are none.
  */
 inline size_t Utf8ValidUpTo(mozilla::Span<const char> aString) {
-  return Utf8ValidUpToIndex(aString);
+  return mozilla::Utf8ValidUpToIndex(aString);
 }
 
 #  define SINGLE_BYTE_REPLACEMENT_CHAR "?"
@@ -442,7 +442,7 @@ inline size_t Utf8ValidUpTo(mozilla::Span<const char> aString) {
  * TextEncoder.encodeInto.
  * https://encoding.spec.whatwg.org/#dom-textencoder-encodeinto
  */
-mozilla::Tuple<size_t, size_t> ConvertUtf16toUtf8Partial(
+std::tuple<size_t, size_t> ConvertUtf16toUtf8Partial(
     mozilla::Span<const char16_t> aSource, mozilla::Span<char> aDest);
 
 /**

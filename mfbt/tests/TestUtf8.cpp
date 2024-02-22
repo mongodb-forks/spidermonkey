@@ -12,7 +12,10 @@
 #include "mozilla/Assertions.h"
 #include "mozilla/EnumSet.h"
 #include "mozilla/IntegerRange.h"
-#include "mozilla/Span.h"
+#include "mozilla/TextUtils.h"
+
+#include <memory>          // for std::shared_ptr
+#include "unicode/ucnv.h"  // for UConverter
 
 using mozilla::ArrayEqual;
 using mozilla::ArrayLength;
@@ -30,7 +33,6 @@ using mozilla::Maybe;
 using mozilla::Nothing;
 using mozilla::Some;
 using mozilla::Span;
-using mozilla::Tie;
 using mozilla::UnsafeConvertValidUtf8toUtf16;
 using mozilla::Utf8Unit;
 using mozilla::Utf8ValidUpTo;
@@ -845,7 +847,7 @@ static void TestConvertUtf16toUtf8Partial() {
   char dst[dstLen];
   memset(dst, 0, dstLen * sizeof(char));
   size_t read;
-  Tie(read, written) = ConvertUtf16toUtf8Partial(srcSpan, Span(dst, 24));
+  std::tie(read, written) = ConvertUtf16toUtf8Partial(srcSpan, Span(dst, 24));
   written = ConvertUtf16toUtf8(Span(src + read, src + srcSpan.Length()),
                                Span(dst + written, dst + dstLen));
   MOZ_RELEASE_ASSERT(ArrayEqual(dst, reference, written));
@@ -1060,7 +1062,7 @@ static void EncodeUtf8FromUtf16WithOutputLimit(Span<const char16_t> src,
 
   size_t read;
   size_t written;
-  Tie(read, written) = ConvertUtf16toUtf8Partial(src, Span(dst, dstLen));
+  std::tie(read, written) = ConvertUtf16toUtf8Partial(src, Span(dst, dstLen));
   MOZ_RELEASE_ASSERT(written <= limit);
   if (!shouldRead.isNothing()) {
     MOZ_RELEASE_ASSERT(read == *shouldRead);

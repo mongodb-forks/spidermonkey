@@ -457,7 +457,7 @@ inline size_t LossyConvertUtf8toLatin1(mozilla::Span<const char> aSource,
  * TextEncoder.encodeInto.
  * https://encoding.spec.whatwg.org/#dom-textencoder-encodeinto
  */
-inline mozilla::Tuple<size_t, size_t> ConvertLatin1toUtf8Partial(
+inline std::tuple<size_t, size_t> ConvertLatin1toUtf8Partial(
     mozilla::Span<const char> aSource, mozilla::Span<char> aDest) {
   const char* srcPtr = aSource.Elements();
   size_t srcLen = aSource.Length();
@@ -478,7 +478,7 @@ inline mozilla::Tuple<size_t, size_t> ConvertLatin1toUtf8Partial(
       break;
     }
   }
-  return mozilla::MakeTuple(
+  return std::make_tuple(
       static_cast<size_t>(reinterpret_cast<const char*>(unsignedSrcPtr) -
                           srcPtr),
       static_cast<size_t>(reinterpret_cast<const char*>(unsignedDstPtr) -
@@ -498,7 +498,7 @@ inline size_t ConvertLatin1toUtf8(mozilla::Span<const char> aSource,
   MOZ_ASSERT(aDest.Length() >= aSource.Length() * 2);
   size_t read;
   size_t written;
-  Tie(read, written) = ConvertLatin1toUtf8Partial(aSource, aDest);
+  std::tie(read, written) = ConvertLatin1toUtf8Partial(aSource, aDest);
   MOZ_ASSERT(read == aSource.Length());
   return written;
 }
