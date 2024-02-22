@@ -16,6 +16,8 @@
  * up as an error, where #if MOZ_HAS_JSRUST or #ifdef MOZ_HAS_JSRUST would
  * silently pass.
  */
+#define MOZ_PRETEND_NO_JSRUST 1 // Avoid all Rust dependencies.
+
 #if (defined(MOZ_HAS_MOZGLUE) || defined(MOZILLA_INTERNAL_API)) && \
     !defined(MOZ_PRETEND_NO_JSRUST)
 #  define MOZ_HAS_JSRUST() 1
