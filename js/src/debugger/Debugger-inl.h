@@ -26,7 +26,7 @@ inline bool js::Debugger::isHookCallAllowed(JSContext* cx) const {
   // onNativeCall hook, we want to _only_ call the hooks attached to that
   // specific debugger.
   return !cx->insideExclusiveDebuggerOnEval ||
-         this == cx->insideExclusiveDebuggerOnEval;
+         this == cx->insideExclusiveDebuggerOnEval.ref();
 }
 
 #endif /* debugger_Debugger_inl_h */
