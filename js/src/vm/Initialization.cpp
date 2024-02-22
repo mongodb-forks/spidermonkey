@@ -124,9 +124,11 @@ JS_PUBLIC_API const char* JS::detail::InitWithFailureDiagnostic(
 
   libraryInitState = InitState::Initializing;
 
-#ifdef JS_STANDALONE
+#ifdef JS_STANDALONE 
+#if MOZ_HAS_JSRUST()
   // The rust hooks are initialized by Gecko on non-standalone builds.
   install_rust_hooks();
+#endif
 #endif
 
   PRMJ_NowInit();
