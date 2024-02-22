@@ -114,5 +114,6 @@ if CONFIG["CC_TYPE"] == "clang-cl":
     ]
 
 USE_LIBS += [
+    "icu",
     "mozglue",
 ]
