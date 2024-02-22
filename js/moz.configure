@@ -1233,7 +1233,7 @@ set_config("MOZ_ICU4X", True, when="--enable-icu4x")
 set_define("MOZ_ICU4X", True, when="--enable-icu4x")
 
 
-@depends(build_environment, when="--with-intl-api")
+@depends(build_environment)
 @imports(_from="__builtin__", _import="open")
 @imports(_from="__builtin__", _import="ValueError")
 def icu_version(build_env):
