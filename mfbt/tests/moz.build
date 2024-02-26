@@ -93,6 +93,7 @@ if CONFIG["OS_ARCH"] == "WINNT":
 # of the included headers.
 CppUnitTests(
     [
+        "TestLatin1",
         "TestUtf8",
     ]
 )
