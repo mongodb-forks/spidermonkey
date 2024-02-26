@@ -529,7 +529,7 @@ def load_wpt_tests(xul_tester, requested_paths, excluded_paths, update_manifest=
     for path in abs_sys_paths:
         if not os.path.isdir(path):
             failed = True
-            print("Could not add '%s' to the path")
+            print("Could not add {0} to the path".format(path))
     if failed:
         return []
 
