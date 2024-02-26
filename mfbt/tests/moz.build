@@ -86,6 +86,7 @@ if CONFIG["OS_ARCH"] == "Linux":
 # sets MOZ_PRETEND_NO_JSRUST, which changes the behavior
 # of the included headers.
 CppUnitTests([
+    "TestLatin1",
     "TestUtf8",
 ])
 
