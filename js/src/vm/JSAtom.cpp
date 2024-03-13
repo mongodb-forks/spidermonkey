@@ -50,7 +50,7 @@ using mozilla::Nothing;
 using mozilla::RangedPtr;
 
 template <typename CharT>
-extern void InflateUTF8CharsToBufferAndTerminate(const JS::UTF8Chars src, CharT* dst,
+extern void InflateUTF8CharsToBuffer(const JS::UTF8Chars src, CharT* dst,
                                      size_t dstLen,
                                      JS::SmallestEncoding encoding);
 
@@ -634,7 +634,7 @@ static MOZ_ALWAYS_INLINE JSAtom* MakeUTF8AtomHelperNonStaticValidLength(
       return nullptr;
     }
 
-    InflateUTF8CharsToBufferAndTerminate(chars->utf8, storage, length, chars->encoding);
+    InflateUTF8CharsToBuffer(chars->utf8, storage, length, chars->encoding);
     return str;
   }
 
@@ -646,7 +646,7 @@ static MOZ_ALWAYS_INLINE JSAtom* MakeUTF8AtomHelperNonStaticValidLength(
     return nullptr;
   }
 
-  InflateUTF8CharsToBufferAndTerminate(chars->utf8, newStr.get(), length, chars->encoding);
+  InflateUTF8CharsToBuffer(chars->utf8, newStr.get(), length, chars->encoding);
 
   return JSAtom::newValidLength(cx, std::move(newStr), length, hash);
 }

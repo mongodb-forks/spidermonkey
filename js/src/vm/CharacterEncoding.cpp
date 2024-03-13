@@ -377,7 +377,6 @@ static void CopyAndInflateUTF8IntoBuffer(JSContext* cx, const UTF8Chars src,
     MOZ_ALWAYS_TRUE((InflateUTF8ToUTF16<ErrorAction>(cx, src, push)));
     MOZ_ASSERT(j == outlen);
   }
-  dst[outlen] = CharT('\0');  // NUL char
 }
 
 template <OnUTF8Error ErrorAction, typename CharsT>
@@ -560,17 +559,17 @@ template bool UTF8EqualsChars(const JS::UTF8Chars, const char16_t*);
 template bool UTF8EqualsChars(const JS::UTF8Chars, const JS::Latin1Char*);
 
 template <typename CharT>
-void InflateUTF8CharsToBufferAndTerminate(const JS::UTF8Chars src, CharT* dst,
+void InflateUTF8CharsToBuffer(const JS::UTF8Chars src, CharT* dst,
                               size_t dstLen, JS::SmallestEncoding encoding) {
   CopyAndInflateUTF8IntoBuffer<OnUTF8Error::Crash>(
       /* cx = */ nullptr, src, dst, dstLen,
       encoding == JS::SmallestEncoding::ASCII);
 }
 
-template void InflateUTF8CharsToBufferAndTerminate(const UTF8Chars src, char16_t* dst,
+template void InflateUTF8CharsToBuffer(const UTF8Chars src, char16_t* dst,
                                        size_t dstLen,
                                        JS::SmallestEncoding encoding);
-template void InflateUTF8CharsToBufferAndTerminate(const UTF8Chars src, JS::Latin1Char* dst,
+template void InflateUTF8CharsToBuffer(const UTF8Chars src, JS::Latin1Char* dst,
                                        size_t dstLen,
                                        JS::SmallestEncoding encoding);
 
