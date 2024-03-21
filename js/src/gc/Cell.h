@@ -259,7 +259,6 @@ struct Cell {
   uintptr_t address() const;
   inline ChunkBase* chunk() const;
 
- private:
   // Cells are destroyed by the GC. Do not delete them directly.
   void operator delete(void*) { MOZ_CRASH("This path is unreachable."); };
 } JS_HAZ_GC_THING;
