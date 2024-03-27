@@ -215,7 +215,7 @@ class RegisterDump {
  public:
   typedef mozilla::Array<Registers::RegisterContent, Registers::Total> GPRArray;
   typedef mozilla::Array<FloatRegisters::RegisterContent,
-                         FloatRegisters::TotalPhys>
+                         std::max<uint32_t>(FloatRegisters::TotalPhys, 1)>
       FPUArray;
 
  protected:  // Silence Clang warning.
