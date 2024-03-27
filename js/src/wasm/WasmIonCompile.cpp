@@ -3424,7 +3424,7 @@ class FunctionCompiler {
   [[nodiscard]] bool emitInstanceCall0(uint32_t lineOrBytecode,
                                        const SymbolicAddressSignature& callee,
                                        MDefinition** result = nullptr) {
-    MDefinition* args[0] = {};
+    MDefinition** args = nullptr;
     return emitInstanceCallN(lineOrBytecode, callee, args, 0, result);
   }
   [[nodiscard]] bool emitInstanceCall1(uint32_t lineOrBytecode,
