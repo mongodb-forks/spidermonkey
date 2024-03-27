@@ -1268,7 +1268,14 @@ class Label {
 
 #define v8_flags js::jit::JitOptions
 
-#define V8_USE_COMPUTED_GOTO 1
+// MONGODB MODIFICATION: Fall back to switch-based interpreters in MSVC.
+// For more information, read the comment in
+// https://github.com/mongodb-forks/spidermonkey/commit/880a295fe2b219b5488529ce7ac01364678f6a4b.
+#ifndef NO_COMPUTED_GOTO
+#  define V8_USE_COMPUTED_GOTO 1
+#else
+#  define V8_USE_COMPUTED_GOTO 0
+#endif
 #define COMPILING_IRREGEXP_FOR_EXTERNAL_EMBEDDER
 
 }  // namespace internal
