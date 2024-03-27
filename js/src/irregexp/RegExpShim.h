@@ -216,7 +216,11 @@ using Address = uintptr_t;
 static const Address kNullAddress = 0;
 
 inline uintptr_t GetCurrentStackPosition() {
+#ifdef _MSC_VER
+  return reinterpret_cast<uintptr_t>(_AddressOfReturnAddress());
+#else
   return reinterpret_cast<uintptr_t>(__builtin_frame_address(0));
+#endif
 }
 
 // Return the largest multiple of m which is <= x.
