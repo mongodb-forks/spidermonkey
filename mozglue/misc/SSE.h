@@ -147,30 +147,6 @@
 #    define MOZILLA_SSE_HAVE_CPUID_DETECTION
 #  endif
 
-#elif defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_AMD64))
-
-#  define MOZILLA_SSE_HAVE_CPUID_DETECTION
-
-#  if defined(_M_IX86_FP)
-
-#    if _M_IX86_FP >= 1
-// It's ok to use SSE instructions based on the /arch option
-#      define MOZILLA_PRESUME_SSE
-#    endif
-#    if _M_IX86_FP >= 2
-// It's ok to use SSE2 instructions based on the /arch option
-#      define MOZILLA_PRESUME_SSE2
-#    endif
-
-#  elif defined(_M_AMD64)
-// MSVC for AMD64 doesn't support MMX, so don't presume it here.
-
-// SSE is always available on AMD64.
-#    define MOZILLA_PRESUME_SSE
-// SSE2 is always available on AMD64.
-#    define MOZILLA_PRESUME_SSE2
-#  endif
-
 #elif defined(__SUNPRO_CC) && (defined(__i386) || defined(__x86_64__))
 // Sun Studio on x86 or amd64
 
