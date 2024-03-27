@@ -5,6 +5,10 @@
 #ifndef gc_Cell_h
 #define gc_Cell_h
 
+#include "mozilla/Atomics.h"
+#include "mozilla/EndianUtils.h"
+
+#include <atomic>
 #include <bit>
 #include <type_traits>
 
@@ -91,10 +95,10 @@ class HeaderWord {
   static constexpr uintptr_t FORWARD_BIT = Bit(0);
   // Bits 1 and 2 are reserved for future use by the GC.
 
-  uintptr_t value_;
+  std::atomic<uintptr_t> value_;
 
   void setAtomic(uintptr_t value) {
-    __atomic_store_n(&value_, value, __ATOMIC_RELAXED);
+    std::atomic_store_explicit(&value_, value, std::memory_order_relaxed);
   }
 
  public:
@@ -104,13 +108,14 @@ class HeaderWord {
                 "Not enough flag bits reserved for GC");
 
   uintptr_t getAtomic() const {
-    return __atomic_load_n(&value_, __ATOMIC_RELAXED);
+    return std::atomic_load_explicit(&value_, std::memory_order_relaxed);
   }
 
   // Accessors for derived class data.
   uintptr_t get() const {
-    // Note: non-atomic load. See class comment.
-    uintptr_t value = value_;
+    // Note: relaxed load. See class comment.
+    uintptr_t value =
+        std::atomic_load_explicit(&value_, std::memory_order_relaxed);
     MOZ_ASSERT((value & RESERVED_MASK) == 0);
     return value;
   }
