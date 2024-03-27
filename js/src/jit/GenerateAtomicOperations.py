@@ -11,6 +11,7 @@ import buildconfig
 is_64bit = "JS_64BIT" in buildconfig.defines
 cpu_arch = buildconfig.substs["CPU_ARCH"]
 is_gcc = buildconfig.substs["CC_TYPE"] == "gcc"
+is_windows = buildconfig.substs["OS_ARCH"] == "WINNT"
 
 
 def fmt_insn(s):
@@ -722,8 +723,12 @@ namespace jit {
 
 
 def generate_atomics_header(c_out):
+    # NOTE: This version of the script has been modified so that it _does not_ generate
+    # an atomic operations header when targeting Windows. It assumes that the build will
+    # use MSVC and the MSVC-specific atomic operations header, which may be unsuitable
+    # for some uses.
     contents = ""
-    if cpu_arch in ("x86", "x86_64", "aarch64") or (
+    if (cpu_arch in ("x86", "x86_64", "aarch64") and not is_windows) or (
         cpu_arch == "arm" and int(buildconfig.substs["ARM_ARCH"]) >= 7
     ):
         contents += "#define JS_HAVE_GENERATED_ATOMIC_OPS 1"
