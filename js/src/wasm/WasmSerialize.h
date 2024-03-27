@@ -188,9 +188,9 @@ struct Coder<MODE_DECODE> {
   template <CoderMode mode>                 \
   friend CoderResult Code##TYPE(Coder<mode>&, CoderArg<mode, TYPE>);
 
-#define WASM_DECLARE_FRIEND_SERIALIZE_ARGS(TYPE, ARGS...) \
+#define WASM_DECLARE_FRIEND_SERIALIZE_ARGS(TYPE, ...) \
   template <CoderMode mode>                               \
-  friend CoderResult Code##TYPE(Coder<mode>&, CoderArg<mode, TYPE>, ARGS);
+  friend CoderResult Code##TYPE(Coder<mode>&, CoderArg<mode, TYPE>, __VA_ARGS__);
 
 // [SMDOC] "Cacheable POD"
 //
@@ -274,15 +274,15 @@ inline constexpr bool is_cacheable_pod = IsCacheablePod<T>::value;
                 #Field " must be cacheable pod");
 
 // Check every field in a type definition to ensure they are cacheable POD.
-#define WASM_CHECK_CACHEABLE_POD(Fields...) \
-  MOZ_FOR_EACH(WASM_CHECK_CACHEABLE_POD_FIELD_, (), (Fields))
+#define WASM_CHECK_CACHEABLE_POD(...) \
+  MOZ_FOR_EACH(WASM_CHECK_CACHEABLE_POD_FIELD_, (), (__VA_ARGS__))
 
 // Check every field in a type definition to ensure they are cacheable POD, and
 // check that the parent class is also cacheable POD.
-#define WASM_CHECK_CACHEABLE_POD_WITH_PARENT(Parent, Fields...) \
+#define WASM_CHECK_CACHEABLE_POD_WITH_PARENT(Parent, ...) \
   static_assert(js::wasm::IsCacheablePod<Parent>::value,        \
                 #Parent " must be cacheable pod");              \
-  MOZ_FOR_EACH(WASM_CHECK_CACHEABLE_POD_FIELD_, (), (Fields))
+  MOZ_FOR_EACH(WASM_CHECK_CACHEABLE_POD_FIELD_, (), (__VA_ARGS__))
 
 // Allow fields that are not cacheable POD but are believed to be safe for
 // serialization due to some justification.
