@@ -216,7 +216,7 @@ class RegisterDump {
  public:
   using GPRArray = mozilla::Array<Registers::RegisterContent, Registers::Total>;
   using FPUArray = mozilla::Array<FloatRegisters::RegisterContent,
-                                  FloatRegisters::TotalPhys>;
+                                  std::max<uint32_t>(FloatRegisters::TotalPhys, 1)>;
 
  protected:  // Silence Clang warning.
   GPRArray regs_;
