@@ -898,7 +898,10 @@ class RecGroup : public AtomicRefCounted<RecGroup> {
   friend class TypeContext;
 
   explicit RecGroup(uint32_t numTypes)
-      : finalizedTypes_(false), numTypes_(numTypes), vectors_(nullptr) {}
+      : finalizedTypes_(false),
+        numTypes_(numTypes),
+        vectors_(nullptr),
+        types_{} {}
 
   // Compute the size in bytes of a recursion group with the specified amount
   // of types.
