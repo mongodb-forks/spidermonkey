@@ -523,6 +523,9 @@ bool js::InitDateTimeState() {
 void js::FinishDateTimeState() {
   js_delete(DateTimeInfo::instance);
   DateTimeInfo::instance = nullptr;
+
+  js_delete(DateTimeInfo::instanceRFP);
+  DateTimeInfo::instanceRFP = nullptr;
 }
 
 void js::ResetTimeZoneInternal(ResetTimeZoneMode mode) {
