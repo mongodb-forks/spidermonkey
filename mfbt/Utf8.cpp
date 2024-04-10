@@ -45,7 +45,7 @@ MFBT_API bool mozilla::detail::IsValidUtf8(const void* aCodeUnits,
 
 #if !MOZ_HAS_JSRUST()
 #include <memory>          // for std::shared_ptr
-#include "unicode/ucnv.h"  // for UConverter
+#include <unicode/ucnv.h>  // for UConverter
 
 std::tuple<UConverter*, UErrorCode> _getUConverter() {
   static thread_local UErrorCode uConverterErr = U_ZERO_ERROR;
@@ -54,11 +54,14 @@ std::tuple<UConverter*, UErrorCode> _getUConverter() {
   return std::make_tuple(utf8Cnv.get(), uConverterErr);
 }
 
+static_assert(sizeof(char16_t) == sizeof(UChar));
 std::tuple<size_t, size_t> mozilla::ConvertUtf16toUtf8Partial(
     mozilla::Span<const char16_t> aSource, mozilla::Span<char> aDest) {
-  const char16_t* srcOrigPtr = aSource.Elements();
-  const char16_t* srcPtr = srcOrigPtr;
-  const char16_t* srcLimit = srcPtr + aSource.Length();
+  // The version of ICU we vendorize with mongo has UChar in its signature, not char16_t.
+  // This only causes issues on macOS, because we don't have a system icu installed.
+  const UChar* srcOrigPtr = reinterpret_cast<const UChar*>(aSource.Elements());
+  const UChar* srcPtr = reinterpret_cast<const UChar*>(srcOrigPtr);
+  const UChar* srcLimit = srcPtr + aSource.Length();
   char* dstOrigPtr = aDest.Elements();
   char* dstPtr = dstOrigPtr;
   const char* dstLimit = dstPtr + aDest.Length();
@@ -143,9 +146,11 @@ size_t mozilla::ConvertUtf8toUtf16(mozilla::Span<const char> aSource,
   const char* srcOrigPtr = aSource.Elements();
   const char* srcPtr = srcOrigPtr;
   const char* srcLimit = srcPtr + aSource.Length();
-  char16_t* dstOrigPtr = aDest.Elements();
-  char16_t* dstPtr = dstOrigPtr;
-  const char16_t* dstLimit = dstPtr + aDest.Length();
+  // The version of ICU we vendorize with mongo has UChar in its signature, not char16_t.
+  // This only causes issues on macOS, because we don't have a system icu installed.
+  UChar* dstOrigPtr = reinterpret_cast<UChar*>(aDest.Elements());
+  UChar* dstPtr = dstOrigPtr;
+  const UChar* dstLimit = dstPtr + aDest.Length();
 
   // Thread-local instance of a UTF-8 converter
   UConverter* utf8Conv;
@@ -178,10 +183,12 @@ size_t mozilla::UnsafeConvertValidUtf8toUtf16(mozilla::Span<const char> aSource,
   const char* srcPtr = srcOrigPtr;
   size_t srcLen = aSource.Length();
   const char* srcLimit = srcPtr + srcLen;
-  char16_t* dstOrigPtr = aDest.Elements();
-  char16_t* dstPtr = dstOrigPtr;
+  // The version of ICU we vendorize with mongo has UChar in its signature, not char16_t.
+  // This only causes issues on macOS, because we don't have a system icu installed.
+  UChar* dstOrigPtr = reinterpret_cast<UChar*>(aDest.Elements());
+  UChar* dstPtr = dstOrigPtr;
   size_t dstLen = aDest.Length();
-  const char16_t* dstLimit = dstPtr + dstLen;
+  const UChar* dstLimit = dstPtr + dstLen;
 
   MOZ_ASSERT(dstLen >= srcLen);
 
