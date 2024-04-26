@@ -1247,29 +1247,89 @@ CoderResult CodeModuleMetadata(Coder<mode>& coder,
   WASM_VERIFY_SERIALIZATION_FOR_SIZE(wasm::ModuleMetadata, 272);
   MOZ_TRY(Magic(coder, Marker::ModuleMetadata));
 
+  // The Visual Studio compiler struggles with the function pointers being
+  // passed as template parameters leading to C1001 Internal compiler errors. If
+  // these functions are instead passed as zero-capture lambdas (which are
+  // implicitly convertible to function pointers) the compiler handles it fine.
+  // However, clang and GCC does not think it is allowed to pass lambdas in this
+  // context which leads us to having two implementations for the different
+  // compilers.
+  #ifndef _MSC_VER
   MOZ_TRY((CodeRefPtr<mode, CodeMetadata, &CodeCodeMetadata>(coder,
                                                              &item->codeMeta)));
   MOZ_TRY((CodeRefPtr<mode, CodeTailMetadata, CodeCodeTailMetadata>(
       coder, &item->codeTailMeta)));
+  #else
+   MOZ_TRY((CodeRefPtr<mode, CodeMetadata,
+              [](Coder<mode>& coder,
+                             CoderArg<mode, wasm::CodeMetadata> item) {
+                return CodeCodeMetadata<mode>(coder, std::move(item));
+              }>(coder, &item->codeMeta)));
+  MOZ_TRY((CodeRefPtr<mode, CodeTailMetadata,
+              [](Coder<mode>& coder,
+                                 CoderArg<mode, wasm::CodeTailMetadata> item) {
+                return CodeCodeTailMetadata<mode>(coder, std::move(item));
+              }>(coder, &item->codeTailMeta)));
+  #endif
   if constexpr (mode == MODE_DECODE) {
     item->codeTailMeta->codeMeta = item->codeMeta;
   }
   MOZ_TRY(Magic(coder, Marker::Imports));
+  #ifndef _MSC_VER
   MOZ_TRY((CodeVector<mode, Import, &CodeImport<mode>>(coder, &item->imports)));
+  #else
+  MOZ_TRY((CodeVector<mode, Import,
+              [](Coder<mode>& coder, CoderArg<mode, Import> item) {
+                return CodeImport<mode>(coder, std::move(item));
+              }>(coder, &item->imports)));
+  #endif
   MOZ_TRY(Magic(coder, Marker::Exports));
+  #ifndef _MSC_VER
   MOZ_TRY((CodeVector<mode, Export, &CodeExport<mode>>(coder, &item->exports)));
+  #else
+   MOZ_TRY((CodeVector<mode, Export,
+              [](Coder<mode>& coder, CoderArg<mode, Export> item) {
+                return CodeExport<mode>(coder, std::move(item));
+              }>(coder, &item->exports)));
+  #endif
   MOZ_TRY(Magic(coder, Marker::ElemSegments));
+  #ifndef _MSC_VER
   MOZ_TRY((CodeVector<mode, ModuleElemSegment, CodeModuleElemSegment<mode>>(
       coder, &item->elemSegments)));
+  #else
+  MOZ_TRY((CodeVector<mode, ModuleElemSegment,
+              [](Coder<mode>& coder, CoderArg<mode, ModuleElemSegment> item) {
+                return CodeModuleElemSegment<mode>(coder, std::move(item));
+              }>(coder, &item->elemSegments)));
+  #endif
   // not serialized: dataSegmentRanges
   MOZ_TRY(Magic(coder, Marker::DataSegments));
+  #ifndef _MSC_VER
   MOZ_TRY(
       (CodeVector<mode, SharedDataSegment,
                   &CodeRefPtr<mode, const DataSegment, CodeDataSegment<mode>>>(
           coder, &item->dataSegments)));
+  #else
+  MOZ_TRY(CodeVector<mode, SharedDataSegment,
+                   [](Coder<mode>& coder, CoderArg<mode, SharedDataSegment> item) {
+                     return CodeRefPtr<mode, const DataSegment,
+                                       [](Coder<mode>& coder,
+                                          CoderArg<mode, const DataSegment> item) {
+                                         return CodeDataSegment<mode>(
+                                             coder, std::move(item));
+                                       }>(coder, std::move(item));
+                   }>(coder, &item->dataSegments));
+  #endif
   MOZ_TRY(Magic(coder, Marker::CustomSections));
+  #ifndef _MSC_VER
   MOZ_TRY((CodeVector<mode, CustomSection, &CodeCustomSection<mode>>(
       coder, &item->customSections)));
+  #else
+    MOZ_TRY((CodeVector<mode, CustomSection,
+              [](Coder<mode>& coder, CoderArg<mode, CustomSection> item) {
+                return CodeCustomSection<mode>(coder, std::move(item));
+              }>(coder, &item->customSections)));
+  #endif
   MOZ_TRY(CodePod(coder, &item->featureUsage));
 
   // Give CodeTailMetadata a pointer to our name payload now that we've
@@ -1488,9 +1548,25 @@ CoderResult CodeModule(Coder<mode>& coder, CoderArg<mode, Module> item) {
   if (!GetOptimizedEncodingBuildId(&currentBuildId)) {
     return Err(OutOfMemory());
   }
+  // The Visual Studio compiler struggles with the function pointers being
+  // passed as template parameters leading to C1001 Internal compiler errors. If
+  // these functions are instead passed as zero-capture lambdas (which are
+  // implicitly convertible to function pointers) the compiler handles it fine.
+  // However, clang and GCC does not think it is allowed to pass lambdas in this
+  // context which leads us to having two implementations for the different
+  // compilers.
   MOZ_TRY(CodePodVector(coder, &currentBuildId));
+#ifndef _MSC_VER
   MOZ_TRY((CodeRefPtr<mode, const ModuleMetadata, &CodeModuleMetadata>(
       coder, &item->moduleMeta_)));
+#else
+MOZ_TRY(
+  (CodeRefPtr<mode, const ModuleMetadata,
+              [](Coder<mode>& coder,
+                               CoderArg<mode, wasm::ModuleMetadata> item) {
+                return CodeModuleMetadata<mode>(coder, std::move(item));
+              }>(coder, &item->moduleMeta_)));
+#endif
   MOZ_TRY(Magic(coder, Marker::Code));
   MOZ_TRY(CodeSharedCode(coder, &item->code_));
   return Ok();
