@@ -148,8 +148,9 @@ inline void DiagnosticMessage(In aIn, char aDiagnostic[1024]) {
 
 // This is working around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81676,
 // fixed in gcc-10
+// MongoDB Edit: Only enable for GCC.
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
-#if __has_warning("-Wunused-but-set-variable")
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #endif
 template <typename In, typename Out>
@@ -236,7 +237,10 @@ bool IsInBounds(In aIn) {
   }
   return true;
 }
+// MongoDB Edit: Only enable for GCC.
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
+#endif
 
 }  // namespace detail
 
