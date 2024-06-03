@@ -104,6 +104,21 @@ class Prefs {
   }
   FOR_EACH_JS_PREF(DEF_GETSET)
 #undef DEF_GETSET
+
+// MONGODB MODIFICATION: Define extra_gc_poisoning() explictly.
+// The upstream version of MozJS defines this setting in StaticPrefList.yaml, which generates
+// this symbol into PrefsGenerated.h. However, that yaml file contains ifdefs which are resolved
+// during the configure step, which in the mongo repo we only run for the production variant.
+// As a workaround, we mimic the behavior of the yaml/macro above by defining the function here.
+// Note: the definition in StaticPrefList.yaml considers additional conditions in its ifdefs,
+// however, in our embedding we only support DEBUG and JS_GC_ZEAL when building under the
+// "Spidermonkey Debug" evergreen variant.
+#if defined(DEBUG) || defined(JS_GC_ZEAL)
+  static bool extra_gc_poisoning() {
+    return true;
+  }
+#endif
+
 };
 
 /**
