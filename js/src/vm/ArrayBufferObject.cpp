@@ -26,7 +26,6 @@
 #ifdef MOZ_VALGRIND
 #  include <valgrind/memcheck.h>
 #endif
-
 #include "jsnum.h"
 #include "jstypes.h"
 
@@ -45,6 +44,7 @@
 #include "vm/GlobalObject.h"
 #include "vm/JSContext.h"
 #include "vm/JSObject.h"
+#include "vm/JSONPrinter.h"  // js::JSONPrinter
 #include "vm/SharedArrayObject.h"
 #include "vm/Warnings.h"  // js::WarnNumberASCII
 #include "wasm/WasmConstants.h"
