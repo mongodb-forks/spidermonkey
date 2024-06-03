@@ -6,6 +6,8 @@
 
 #include "vm/PropMap-inl.h"
 
+#include "mozilla/Sprintf.h"
+
 #include "gc/HashUtil.h"
 #include "js/GCVector.h"
 #include "js/Printer.h"  // js::GenericPrinter, js::Fprinter
