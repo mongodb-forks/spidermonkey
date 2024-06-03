@@ -29,6 +29,7 @@
 #include "vm/Iteration.h"
 #include "vm/JSContext.h"
 #include "vm/JSObject.h"
+#include "vm/JSONPrinter.h"  // js::JSONPrinter
 #include "vm/PlainObject.h"    // js::PlainObject
 #include "vm/PromiseObject.h"  // js::PromiseObject, js::PromiseSlot_*
 #include "vm/SelfHosting.h"
