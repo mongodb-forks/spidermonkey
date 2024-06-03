@@ -45,6 +45,7 @@
 #include "vm/Interpreter.h"
 #include "vm/JSContext.h"
 #include "vm/JSObject.h"
+#include "vm/JSONPrinter.h"  // js::JSONPrinter
 #include "vm/SelfHosting.h"
 #include "vm/SharedArrayObject.h"
 #include "vm/Warnings.h"  // js::WarnNumberASCII
