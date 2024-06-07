@@ -100,7 +100,7 @@ bool js::gExtraPoisoningEnabled = false;
 #  endif
 #endif
 
-// Mongo MozJS: We don't want to compile the below code when running in mongo embedding. 
+// MONGODB MODIFICATION: We don't want to compile the below code when running in mongo embedding. 
 // Instead, we would like to rely on our own JS custom allocator implementation in mongo_sources.
 #ifndef JS_USE_CUSTOM_ALLOCATOR
 JS_PUBLIC_DATA arena_id_t js::MallocArena;
