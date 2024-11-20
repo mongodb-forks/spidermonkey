@@ -109,9 +109,6 @@ class ExclusiveData {
   explicit ExclusiveData(const MutexId& id, Args&&... args)
       : lock_(id), value_(std::forward<Args>(args)...) {}
 
-// Removed move constructor that both had a misspelled variable and attempted to move a Mutex, which
-// contains a member variable that deletes its move constructor.
-// TODO(SERVER-90310): When we next upgrade mozjs, we should revisit this modification.
 
   ExclusiveData& operator=(ExclusiveData&& rhs) {
     this->~ExclusiveData();
