@@ -109,10 +109,9 @@ class ExclusiveData {
   explicit ExclusiveData(const MutexId& id, Args&&... args)
       : lock_(id), value_(std::forward<Args>(args)...) {}
 
-  ExclusiveData(ExclusiveData&& rhs)
-      : lock_(std::move(rhs.lock)), value_(std::move(rhs.value_)) {
-    MOZ_ASSERT(&rhs != this, "self-move disallowed!");
-  }
+// Removed move constructor that both had a misspelled variable and attempted to move a Mutex, which
+// contains a member variable that deletes its move constructor.
+// TODO(SERVER-90310): When we next upgrade mozjs, we should revisit this modification.
 
   ExclusiveData& operator=(ExclusiveData&& rhs) {
     this->~ExclusiveData();
