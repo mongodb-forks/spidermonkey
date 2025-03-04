@@ -126,11 +126,8 @@
  *
  * This is useful to have clearer information on assertion failures.
  */
-#if MOZ_HAS_CLANG_ATTRIBUTE(nomerge)
-#  define MOZ_NOMERGE __attribute__((nomerge))
-#else
+// MONGODB MODIFICATION: v4 of the mongo toolchain does not support the nomerge clang attribute
 #  define MOZ_NOMERGE
-#endif
 
 /*
  * MOZ_NEVER_INLINE is a macro which expands to tell the compiler that the
