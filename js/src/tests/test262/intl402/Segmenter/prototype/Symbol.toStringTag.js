@@ -1,4 +1,4 @@
-// |reftest| skip-if(!Intl.Segmenter) -- Intl.Segmenter is not enabled unconditionally
+// |reftest| skip-if(!this.hasOwnProperty('Intl')||!Intl.Segmenter) -- Intl.Segmenter is not enabled unconditionally
 // Copyright 2019 Leo Balter. All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
