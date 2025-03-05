@@ -1227,8 +1227,9 @@ def enable_system_icu_option(enable_system_icu):
     return enable_system_icu
 
 
+# MONGODB MODIFICATION: Allow building on Ubunutu 22 workstations with system ICU.
 system_icu = pkg_check_modules(
-    "MOZ_ICU", "icu-uc icu-i18n >= 78.1", when="--with-system-icu"
+    "MOZ_ICU", "icu-uc icu-i18n >= 70.0", when="--with-system-icu"
 )
 
 
