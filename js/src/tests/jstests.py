@@ -498,6 +498,8 @@ def parse_args():
 def load_wpt_tests(xul_tester, requested_paths, excluded_paths, update_manifest=True):
     """Return a list of `RefTestCase` objects for the jsshell testharness.js
     tests filtered by the given paths and debug-ness."""
+    # MONGODB MODIFICATION: Exclude web-platform tests
+    return []
     repo_root = abspath(os.path.join(here, "..", "..", ".."))
     wp = os.path.join(repo_root, "testing", "web-platform")
     wpt = os.path.join(wp, "tests")
