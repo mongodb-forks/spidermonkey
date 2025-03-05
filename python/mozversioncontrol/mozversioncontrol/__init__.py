@@ -1124,12 +1124,15 @@ def get_repository_from_env():
     us to respect what was passed into configure. Otherwise, we fall back to
     scanning the filesystem.
     """
-    try:
-        import buildconfig
+    # MONGODB MODIFICATION: Building mozjs does not have VCS info and this function
+    # causes an uncaught exception.
 
-        return get_repository_from_build_config(buildconfig)
-    except (ImportError, MissingVCSTool):
-        pass
+    # try:
+    #     import buildconfig
+
+    #     return get_repository_from_build_config(buildconfig)
+    # except (ImportError, MissingVCSTool):
+    #     pass
 
     paths_to_check = [Path.cwd(), *Path.cwd().parents]
 
