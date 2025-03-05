@@ -1,3 +1,4 @@
+// |reftest| skip-if(!this.hasOwnProperty('Intl')||!Intl.Segmenter) -- Intl.Segmenter is not enabled unconditionally
 // Copyright 2020 the V8 project authors. All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 /*---
