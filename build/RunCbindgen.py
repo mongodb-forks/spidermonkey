@@ -40,6 +40,8 @@ def _run_process(args):
 
 
 def generate_metadata(output, cargo_config):
+    # MONGODB MODIFICATION: Prevent cbindgen from running.
+    return
     args = [
         buildconfig.substs["CARGO"],
         "metadata",
@@ -71,6 +73,8 @@ def generate_metadata(output, cargo_config):
 
 
 def generate(output, metadata_path, cbindgen_crate_path, *in_tree_dependencies):
+    # MONGODB MODIFICATION: Prevent cbindgen from running.
+    return
     stdout, returncode = _run_process(
         [
             buildconfig.substs["CBINDGEN"],
