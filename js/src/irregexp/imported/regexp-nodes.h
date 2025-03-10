@@ -370,7 +370,8 @@ class ActionNode : public SeqRegExpNode {
   }
   RegExpFlags flags() const {
     DCHECK_EQ(action_type(), MODIFY_FLAGS);
-    return RegExpFlags{data_.u_modify_flags.flags};
+    // MONGODB MODIFICATION: Fix -Wc++11-narrowing error with explicit cast
+    return RegExpFlags{static_cast<RegExpFlags::Flag>(data_.u_modify_flags.flags)};
   }
   ActionNode* success_node() const {
     DCHECK_EQ(action_type(), BEGIN_POSITIVE_SUBMATCH);
