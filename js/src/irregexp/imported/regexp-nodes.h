@@ -359,7 +359,8 @@ class ActionNode : public SeqNode {
   }
   Flags flags() const {
     DCHECK_EQ(action_type(), MODIFY_FLAGS);
-    return Flags{data_.u_modify_flags.flags};
+    // MONGODB MODIFICATION: Fix -Wc++11-narrowing error with explicit cast
+    return Flags{static_cast<Flags::Flag>(data_.u_modify_flags.flags)};
   }
   ActionNode* success_node() const {
     DCHECK_EQ(action_type(), BEGIN_POSITIVE_SUBMATCH);
