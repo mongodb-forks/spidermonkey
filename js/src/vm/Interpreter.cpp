@@ -1722,12 +1722,36 @@ bool js::DisposeDisposablesOnScopeLeave(JSContext* cx,
 
 bool MOZ_NEVER_INLINE JS_HAZ_JSNATIVE_CALLER js::Interpret(JSContext* cx,
                                                            RunState& state) {
+
+// MONGODB MODIFICATION: MSVC does not support computed goto statments and
+// taking address of labels. See this link for more details.
+// https://eli.thegreenplace.net/2012/07/12/computed-goto-for-efficient-dispatch-tables
+// As a workaround, we define a switch-based interpreter loop which is
+// less efficient but does not rely on non-standard language extensions.
+#if defined(NO_COMPUTED_GOTO) || defined(_MSC_VER)
+
+#define INTERPRETER_LOOP()   \
+  the_switch:                \
+    switch (switchOp)
+#define CASE_NOT_COMPUTED(OP) case OP:
+#define CASE(OP) case static_cast<jsbytecode>(JSOp::OP):
+#define DEFAULT() default:
+#define DISPATCH_TO(OP)   \
+    JS_BEGIN_MACRO        \
+      switchOp = (OP);    \
+      goto the_switch;    \
+    JS_END_MACRO
+    // This variable is effectively a parameter to the switch.
+    jsbytecode switchOp;
+#else // end no computed goto case
+
 /*
  * Define macros for an interpreter loop. Opcode dispatch is done by
  * indirect goto (aka a threaded interpreter), which is technically
  * non-standard but is supported by all of our supported compilers.
  */
 #define INTERPRETER_LOOP()
+#define CASE_NOT_COMPUTED(OP) label_##OP:
 #define CASE(OP) label_##OP:
 #define DEFAULT() label_default:
 #define DISPATCH_TO(OP) goto* addresses[(OP)]
@@ -1746,6 +1770,8 @@ bool MOZ_NEVER_INLINE JS_HAZ_JSNATIVE_CALLER js::Interpret(JSContext* cx,
           FOR_EACH_TRAILING_UNUSED_OPCODE(TRAILING_LABEL)
 #undef TRAILING_LABEL
   };
+
+#endif // end computed goto case
 
   /*
    * Increment REGS.pc by N, load the opcode at that position,
@@ -1915,7 +1941,7 @@ bool MOZ_NEVER_INLINE JS_HAZ_JSNATIVE_CALLER js::Interpret(JSContext* cx,
   ADVANCE_AND_DISPATCH(0);
 
   INTERPRETER_LOOP() {
-    CASE(EnableInterruptsPseudoOpcode) {
+    CASE_NOT_COMPUTED(EnableInterruptsPseudoOpcode) {
       bool moreInterrupts = false;
       jsbytecode op = *REGS.pc;
 
