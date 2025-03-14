@@ -7847,15 +7847,18 @@ bool GeneralParser<ParseHandler, Unit>::classMember(
     }
 
     ClassFieldType field;
-    MOZ_TRY_VAR_OR_RETURN(field,
-                          handler_.newClassFieldDefinition(
-                              propName, initializer, isStatic
+
+    // MONGODB MODIFICATION: MSVC does not support using macros in the middle of functions.
 #ifdef ENABLE_DECORATORS
-                              ,
-                              decorators, accessorGetterNode, accessorSetterNode
+    MOZ_TRY_VAR_OR_RETURN(field,
+        handler_.newClassFieldDefinition(
+            propName, initializer, isStatic, decorators, accessorGetterNode, accessorSetterNode),
+        false);
+#else
+    MOZ_TRY_VAR_OR_RETURN(field,
+        handler_.newClassFieldDefinition(propName, initializer, isStatic),
+        false);
 #endif
-                              ),
-                          false);
 
     return handler_.addClassMemberDefinition(classMembers, field);
   }
@@ -8009,16 +8012,17 @@ bool GeneralParser<ParseHandler, Unit>::classMember(
 #endif
 
   Node method;
-  MOZ_TRY_VAR_OR_RETURN(
-      method,
-      handler_.newClassMethodDefinition(propName, funNode, atype, isStatic,
-                                        initializerIfPrivate
+
+    // MONGODB MODIFICATION: MSVC does not support using macros in the middle of functions.
 #ifdef ENABLE_DECORATORS
-                                        ,
-                                        decorators
-#endif
-                                        ),
+  MOZ_TRY_VAR_OR_RETURN(method,
+      handler_.newClassMethodDefinition(propName, funNode, atype, isStatic, initializerIfPrivate, decorators),
       false);
+#else
+  MOZ_TRY_VAR_OR_RETURN(method,
+      handler_.newClassMethodDefinition(propName, funNode, atype, isStatic, initializerIfPrivate),
+      false);
+#endif
 
   if (dotInitializersScope.isSome()) {
     MOZ_TRY_VAR_OR_RETURN(
