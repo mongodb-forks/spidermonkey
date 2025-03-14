@@ -430,7 +430,8 @@ bool wasm::Init() {
   // at compile time.
   uintptr_t pageSize = gc::SystemPageSize();
   MOZ_RELEASE_ASSERT(wasm::NullPtrGuardSize <= pageSize);
-  MOZ_RELEASE_ASSERT(intptr_t(nullptr) == AnyRef::NullRefValue);
+  // MONGODB MODIFICATION: Use portable mechanism to check for nullptr, to satisfy MSVC.
+  MOZ_RELEASE_ASSERT(reinterpret_cast<intptr_t>(nullptr) == AnyRef::NullRefValue);
 
   ConfigureHugeMemory();
 
