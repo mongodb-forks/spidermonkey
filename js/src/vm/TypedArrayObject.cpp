@@ -868,8 +868,15 @@ class FixedLengthTypedArrayObjectTemplate
   using TypedArrayTemplate::protoKey;
 
   static inline const JSClass* instanceClass() {
+      // MONGODB MODIFICATION: MSVC does not consider TypedArrayObject::fixedLengthClasses as a compile
+      // time constant. To workaround this, perform this assertion at runtime in Windows builds.
+#ifdef _MSC_VER
+    MOZ_RELEASE_ASSERT(ArrayTypeID() <
+                std::size(TypedArrayObject::fixedLengthClasses));
+#else
     static_assert(ArrayTypeID() <
                   std::size(TypedArrayObject::fixedLengthClasses));
+#endif
     return &TypedArrayObject::fixedLengthClasses[ArrayTypeID()];
   }
 
@@ -1035,8 +1042,15 @@ class ResizableTypedArrayObjectTemplate
   using TypedArrayTemplate::protoKey;
 
   static inline const JSClass* instanceClass() {
+    // MONGODB MODIFICATION: MSVC does not consider TypedArrayObject::resizableClasses as a compile
+    // time constant. To workaround this, perform this assertion at runtime in Windows builds.
+#ifdef _MSC_VER
+    MOZ_RELEASE_ASSERT(ArrayTypeID() <
+                std::size(TypedArrayObject::resizableClasses));
+#else
     static_assert(ArrayTypeID() <
                   std::size(TypedArrayObject::resizableClasses));
+#endif
     return &TypedArrayObject::resizableClasses[ArrayTypeID()];
   }
 
