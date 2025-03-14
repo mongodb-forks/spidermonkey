@@ -364,10 +364,15 @@ struct VMFunctionDataHelper<R (*)(JSContext*, Args...)>
 
 // Generate VMFunctionData array.
 static constexpr VMFunctionData vmFunctions[] = {
-#define DEF_VMFUNCTION(name, fp, valuesToPop...) \
-  VMFunctionDataHelper<decltype(&(::fp))>(#name, PopValues(valuesToPop)),
+#define DEF_VMFUNCTION_HELPER(name, fp, values_to_pop) \
+  VMFunctionDataHelper<decltype(&(::fp))>(#name, PopValues values_to_pop),
+
+#define DEF_VMFUNCTION(name, fp, ...) \
+  DEF_VMFUNCTION_HELPER(name, fp, (__VA_ARGS__))
+
     VMFUNCTION_LIST(DEF_VMFUNCTION)
 #undef DEF_VMFUNCTION
+#undef DEF_VMFUNCTION_HELPER
 };
 
 #if MOZ_IS_GCC
