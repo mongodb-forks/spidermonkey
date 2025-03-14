@@ -282,7 +282,7 @@ static_assert(std::size(slotsToThingKind) == SLOTS_TO_THING_KIND_LIMIT,
 // To use this table, subtract sizeof(NativeObject) from your desired allocation
 // size, divide by sizeof(js::Value) to get the number of "slots", and then
 // index into this table. See gc::GetGCObjectKindForBytes.
-const constexpr uint32_t gc::slotsToAllocKindBytes[] = {
+const uint32_t gc::slotsToAllocKindBytes[] = {
     // These entries correspond exactly to gc::slotsToThingKind. The numeric
     // comments therefore indicate the number of slots that the "bytes" would
     // correspond to.
