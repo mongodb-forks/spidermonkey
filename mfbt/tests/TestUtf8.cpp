@@ -750,85 +750,85 @@ static void TestDecodeOneUtf8CodePoint() {
 static void TestUtf8ValidUpTo() {
   static const size_t baseLen = strlen("abcdefghijklmnop");
   static const char bytes0[] = "abcdefghijklmnopaabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes0, ArrayLength(bytes0))) ==
-                     ArrayLength(bytes0));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes0, std::size(bytes0))) ==
+                     std::size(bytes0));
   static const char bytes1[] = "abcdefghijklmnop\u00FEabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes1, ArrayLength(bytes1))) ==
-                     ArrayLength(bytes1));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes1, std::size(bytes1))) ==
+                     std::size(bytes1));
   static const char bytes2[] = "abcdefghijklmnop\u03B1abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes2, ArrayLength(bytes2))) ==
-                     ArrayLength(bytes2));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes2, std::size(bytes2))) ==
+                     std::size(bytes2));
   static const char bytes3[] = "abcdefghijklmnop\u3041abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes3, ArrayLength(bytes3))) ==
-                     ArrayLength(bytes3));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes3, std::size(bytes3))) ==
+                     std::size(bytes3));
   static const char bytes4[] = "abcdefghijklmnop\U0001F4A9abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes4, ArrayLength(bytes4))) ==
-                     ArrayLength(bytes4));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes4, std::size(bytes4))) ==
+                     std::size(bytes4));
   static const char bytes5[] = "abcdefghijklmnop\uFE00abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes5, ArrayLength(bytes5))) ==
-                     ArrayLength(bytes5));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes5, std::size(bytes5))) ==
+                     std::size(bytes5));
   static const char bytes6[] = "abcdefghijklmnop\u202Cabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes6, ArrayLength(bytes6))) ==
-                     ArrayLength(bytes6));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes6, std::size(bytes6))) ==
+                     std::size(bytes6));
   static const char bytes7[] = "abcdefghijklmnop\uFEFFabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes7, ArrayLength(bytes7))) ==
-                     ArrayLength(bytes7));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes7, std::size(bytes7))) ==
+                     std::size(bytes7));
   static const char bytes8[] = "abcdefghijklmnop\u0590abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes8, ArrayLength(bytes8))) ==
-                     ArrayLength(bytes8));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes8, std::size(bytes8))) ==
+                     std::size(bytes8));
   static const char bytes9[] = "abcdefghijklmnop\u08FFabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes9, ArrayLength(bytes9))) ==
-                     ArrayLength(bytes9));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes9, std::size(bytes9))) ==
+                     std::size(bytes9));
   static const char bytes10[] = "abcdefghijklmnop\u061Cabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes10, ArrayLength(bytes10))) ==
-                     ArrayLength(bytes10));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes10, std::size(bytes10))) ==
+                     std::size(bytes10));
   static const char bytes11[] = "abcdefghijklmnop\uFB50abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes11, ArrayLength(bytes11))) ==
-                     ArrayLength(bytes11));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes11, std::size(bytes11))) ==
+                     std::size(bytes11));
   static const char bytes12[] = "abcdefghijklmnop\uFDFFabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes12, ArrayLength(bytes12))) ==
-                     ArrayLength(bytes12));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes12, std::size(bytes12))) ==
+                     std::size(bytes12));
   static const char bytes13[] = "abcdefghijklmnop\uFE70abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes13, ArrayLength(bytes13))) ==
-                     ArrayLength(bytes13));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes13, std::size(bytes13))) ==
+                     std::size(bytes13));
   static const char bytes14[] = "abcdefghijklmnop\uFEFEabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes14, ArrayLength(bytes14))) ==
-                     ArrayLength(bytes14));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes14, std::size(bytes14))) ==
+                     std::size(bytes14));
   static const char bytes15[] = "abcdefghijklmnop\u200Fabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes15, ArrayLength(bytes15))) ==
-                     ArrayLength(bytes15));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes15, std::size(bytes15))) ==
+                     std::size(bytes15));
   static const char bytes16[] = "abcdefghijklmnop\u202Babcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes16, ArrayLength(bytes16))) ==
-                     ArrayLength(bytes16));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes16, std::size(bytes16))) ==
+                     std::size(bytes16));
   static const char bytes17[] = "abcdefghijklmnop\u202Eabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes17, ArrayLength(bytes17))) ==
-                     ArrayLength(bytes17));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes17, std::size(bytes17))) ==
+                     std::size(bytes17));
   static const char bytes18[] = "abcdefghijklmnop\u2067abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes18, ArrayLength(bytes18))) ==
-                     ArrayLength(bytes18));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes18, std::size(bytes18))) ==
+                     std::size(bytes18));
   static const char bytes19[] = "abcdefghijklmnop\U00010800abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes19, ArrayLength(bytes19))) ==
-                     ArrayLength(bytes19));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes19, std::size(bytes19))) ==
+                     std::size(bytes19));
   static const char bytes20[] = "abcdefghijklmnop\u10FFFabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes20, ArrayLength(bytes20))) ==
-                     ArrayLength(bytes20));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes20, std::size(bytes20))) ==
+                     std::size(bytes20));
   static const char bytes21[] = "abcdefghijklmnop\U0001E800abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes21, ArrayLength(bytes21))) ==
-                     ArrayLength(bytes21));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes21, std::size(bytes21))) ==
+                     std::size(bytes21));
   static const char bytes22[] = "abcdefghijklmnop\U0001EFFFabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes22, ArrayLength(bytes22))) ==
-                     ArrayLength(bytes22));
+  MOZ_RELEASE_ASSERT(Utf8ValidUpTo(Span(bytes22, std::size(bytes22))) ==
+                     std::size(bytes22));
   static const char bytes23[] =
       "abcdefghijklmnop\x80\xBF"
       "abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes23, ArrayLength(bytes23))) ==
+  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes23, std::size(bytes23))) ==
                      baseLen);
 }
 
 static void TestConvertUtf16toUtf8Partial() {
   static const char reference[] =
       "abcdefghijklmnopqrstu\U0001F4A9v\u2603w\u00B6xyzz";
-  static const size_t referenceLen = ArrayLength(reference);
+  static const size_t referenceLen = std::size(reference);
   static const size_t srcLen = referenceLen + 1;
   static char16_t src[srcLen];
   size_t written =
@@ -847,7 +847,7 @@ static void TestConvertUtf16toUtf8Partial() {
 static void TestConvertUtf16toUtf8() {
   static const char reference[] =
       "abcdefghijklmnopqrstu\U0001F4A9v\u2603w\u00B6xyzz";
-  static const size_t referenceLen = ArrayLength(reference);
+  static const size_t referenceLen = std::size(reference);
   static const size_t srcLen = referenceLen + 1;
   static char16_t src[srcLen];
   size_t written =
@@ -862,7 +862,7 @@ static void TestConvertUtf16toUtf8() {
 
 static void TestConvertUtf8toUtf16() {
   static const char src[] = "abcdefghijklmnopqrstu\U0001F4A9v\u2603w\u00B6xyzz";
-  static const size_t srcLen = ArrayLength(src);
+  static const size_t srcLen = std::size(src);
   const char* srcPtr = src;
   const char* srcLimit = srcPtr + srcLen;
   static const size_t dstLen = srcLen + 1;
@@ -897,7 +897,7 @@ static void TestConvertUtf8toUtf16WithoutReplacement() {
 
   static const char src1[] = "ab";
   static const size_t src1Len =
-      ArrayLength(src1) - 1;  // -1 for the nullptr byte at the end
+      std::size(src1) - 1;  // -1 for the nullptr byte at the end
   written =
       ConvertUtf8toUtf16WithoutReplacement(Span(src1, src1Len), Span(buf, 2));
   MOZ_RELEASE_ASSERT(!written.isNothing());
@@ -910,7 +910,7 @@ static void TestConvertUtf8toUtf16WithoutReplacement() {
       "\xC3\xA4"
       "c";
   static const size_t src2Len =
-      ArrayLength(src2) - 1;  // -1 for the nullptr byte at the end
+      std::size(src2) - 1;  // -1 for the nullptr byte at the end
   written =
       ConvertUtf8toUtf16WithoutReplacement(Span(src2, src2Len), Span(buf, 3));
   MOZ_RELEASE_ASSERT(!written.isNothing());
@@ -921,7 +921,7 @@ static void TestConvertUtf8toUtf16WithoutReplacement() {
 
   static const char src3[] = "\xE2\x98\x83";
   static const size_t src3Len =
-      ArrayLength(src3) - 1;  // -1 for the nullptr byte at the end
+      std::size(src3) - 1;  // -1 for the nullptr byte at the end
   written =
       ConvertUtf8toUtf16WithoutReplacement(Span(src3, src3Len), Span(buf, 3));
   MOZ_RELEASE_ASSERT(!written.isNothing());
@@ -934,7 +934,7 @@ static void TestConvertUtf8toUtf16WithoutReplacement() {
       "\xE2\x98\x83"
       "d";
   static const size_t src4Len =
-      ArrayLength(src4) - 1;  // -1 for the nullptr byte at the end
+      std::size(src4) - 1;  // -1 for the nullptr byte at the end
   written =
       ConvertUtf8toUtf16WithoutReplacement(Span(src4, src4Len), Span(buf, 4));
   MOZ_RELEASE_ASSERT(!written.isNothing());
@@ -945,7 +945,7 @@ static void TestConvertUtf8toUtf16WithoutReplacement() {
 
   static const char src5[] = "\xE2\x98\x83\xC3\xA4";
   static const size_t src5Len =
-      ArrayLength(src5) - 1;  // -1 for the nullptr byte at the end
+      std::size(src5) - 1;  // -1 for the nullptr byte at the end
   written =
       ConvertUtf8toUtf16WithoutReplacement(Span(src5, src5Len), Span(buf, 5));
   MOZ_RELEASE_ASSERT(!written.isNothing());
@@ -956,7 +956,7 @@ static void TestConvertUtf8toUtf16WithoutReplacement() {
 
   static const char src6[] = "\xF0\x9F\x93\x8E";
   static const size_t src6Len =
-      ArrayLength(src6) - 1;  // -1 for the nullptr byte at the end
+      std::size(src6) - 1;  // -1 for the nullptr byte at the end
   written =
       ConvertUtf8toUtf16WithoutReplacement(Span(src6, src6Len), Span(buf, 4));
   MOZ_RELEASE_ASSERT(!written.isNothing());
@@ -969,7 +969,7 @@ static void TestConvertUtf8toUtf16WithoutReplacement() {
       "\xF0\x9F\x93\x8E"
       "e";
   static const size_t src7Len =
-      ArrayLength(src7) - 1;  // -1 for the nullptr byte at the end
+      std::size(src7) - 1;  // -1 for the nullptr byte at the end
   written =
       ConvertUtf8toUtf16WithoutReplacement(Span(src7, src7Len), Span(buf, 5));
   MOZ_RELEASE_ASSERT(!written.isNothing());
@@ -981,7 +981,7 @@ static void TestConvertUtf8toUtf16WithoutReplacement() {
 
   static const char src8[] = "\xF0\x9F\x93";
   static const size_t src8Len =
-      ArrayLength(src8) - 1;  // -1 for the nullptr byte at the end
+      std::size(src8) - 1;  // -1 for the nullptr byte at the end
   written =
       ConvertUtf8toUtf16WithoutReplacement(Span(src8, src8Len), Span(buf, 5));
   MOZ_RELEASE_ASSERT(written.isNothing());
@@ -1026,20 +1026,20 @@ static void EncodeUtf8FromUtf16(Span<const char16_t> src,
 
 #define P99_PROTECT(...) __VA_ARGS__
 #define ARR(...) P99_PROTECT(__VA_ARGS__)
-#define ENC(src, expect)                                          \
-  {                                                               \
-    const char16_t src1[] = src;                                  \
-    const char expect1[] = expect;                                \
-    EncodeUtf8FromUtf16(Span(src1, ArrayLength(src1)),            \
-                        Span(expect1, ArrayLength(expect1) - 1)); \
+#define ENC(src, expect)                                        \
+  {                                                             \
+    const char16_t src1[] = src;                                \
+    const char expect1[] = expect;                              \
+    EncodeUtf8FromUtf16(Span(src1, std::size(src1)),            \
+                        Span(expect1, std::size(expect1) - 1)); \
   }
 
-#define ENC_WITH_EMPTY_SRC(expect)                                \
-  {                                                               \
-    const char16_t src1[] = {};                                   \
-    const char expect1[] = expect;                                \
-    EncodeUtf8FromUtf16(Span(src1, src1),                         \
-                        Span(expect1, ArrayLength(expect1) - 1)); \
+#define ENC_WITH_EMPTY_SRC(expect)                              \
+  {                                                             \
+    const char16_t src1[] = {};                                 \
+    const char expect1[] = expect;                              \
+    EncodeUtf8FromUtf16(Span(src1, src1),                       \
+                        Span(expect1, std::size(expect1) - 1)); \
   }
 
 static void EncodeUtf8FromUtf16WithOutputLimit(Span<const char16_t> src,
@@ -1073,23 +1073,22 @@ static void EncodeUtf8FromUtf16WithOutputLimit(Span<const char16_t> src,
 #define DBRC DOUBLE_BYTE_REPLACEMENT_CHAR
 #define TBRC TRIPLE_BYTE_REPLACEMENT_CHAR
 
-#define ENC_LMT(src, expect, limit, read, written)                  \
-  {                                                                 \
-    const char16_t src1[] = src;                                    \
-    const char expect1[] = expect;                                  \
-    EncodeUtf8FromUtf16WithOutputLimit(                             \
-        Span(src1, ArrayLength(src1)),                              \
-        Span(expect1, ArrayLength(expect1) - 1), limit, Some(read), \
-        Some(written));                                             \
+#define ENC_LMT(src, expect, limit, read, written)                            \
+  {                                                                           \
+    const char16_t src1[] = src;                                              \
+    const char expect1[] = expect;                                            \
+    EncodeUtf8FromUtf16WithOutputLimit(Span(src1, std::size(src1)),           \
+                                       Span(expect1, std::size(expect1) - 1), \
+                                       limit, Some(read), Some(written));     \
   }
 
-#define ENC_LMT_WITH_EMPTY_SOURCE(expect, limit, read, written)           \
-  {                                                                       \
-    const char16_t src1[] = {};                                           \
-    const char expect1[] = expect;                                        \
-    EncodeUtf8FromUtf16WithOutputLimit(                                   \
-        Span(src1, src1), Span(expect1, ArrayLength(expect1) - 1), limit, \
-        Some(read), Some(written));                                       \
+#define ENC_LMT_WITH_EMPTY_SOURCE(expect, limit, read, written)               \
+  {                                                                           \
+    const char16_t src1[] = {};                                               \
+    const char expect1[] = expect;                                            \
+    EncodeUtf8FromUtf16WithOutputLimit(Span(src1, src1),                      \
+                                       Span(expect1, std::size(expect1) - 1), \
+                                       limit, Some(read), Some(written));     \
   }
 //     fn EncodeUtf8FromUtf16WithOutputLimit(
 //         string: &[u16],
