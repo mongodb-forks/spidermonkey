@@ -10,7 +10,6 @@
 #include "mozilla/Utf8.h"
 
 using mozilla::ArrayEqual;
-using mozilla::ArrayLength;
 using mozilla::ConvertLatin1toUtf16;
 using mozilla::ConvertLatin1toUtf8;
 using mozilla::ConvertLatin1toUtf8Partial;
@@ -149,146 +148,126 @@ static void TestUnsafeIsValidUtf8Latin1Fail() {
 
 static void TestCheckUtf8ForLatin1() {
   static const char bytes0[] = "abcdefghijklmnopaabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      UnsafeIsValidUtf8Latin1(Span(bytes0, ArrayLength(bytes0))));
+  MOZ_RELEASE_ASSERT(UnsafeIsValidUtf8Latin1(Span(bytes0, std::size(bytes0))));
   static const char bytes1[] = "abcdefghijklmnop\u00FEabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      UnsafeIsValidUtf8Latin1(Span(bytes1, ArrayLength(bytes1))));
+  MOZ_RELEASE_ASSERT(UnsafeIsValidUtf8Latin1(Span(bytes1, std::size(bytes1))));
   static const char bytes2[] = "abcdefghijklmnop\u03B1abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes2, ArrayLength(bytes2))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes2, std::size(bytes2))));
   static const char bytes3[] = "abcdefghijklmnop\u3041abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes3, ArrayLength(bytes3))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes3, std::size(bytes3))));
   static const char bytes4[] = "abcdefghijklmnop\U0001F4A9abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes4, ArrayLength(bytes4))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes4, std::size(bytes4))));
   static const char bytes5[] = "abcdefghijklmnop\uFE00abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes5, ArrayLength(bytes5))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes5, std::size(bytes5))));
   static const char bytes6[] = "abcdefghijklmnop\u202Cabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes6, ArrayLength(bytes6))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes6, std::size(bytes6))));
   static const char bytes7[] = "abcdefghijklmnop\uFEFFabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes7, ArrayLength(bytes7))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes7, std::size(bytes7))));
   static const char bytes8[] = "abcdefghijklmnop\u0590abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes8, ArrayLength(bytes8))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes8, std::size(bytes8))));
   static const char bytes9[] = "abcdefghijklmnop\u08FFabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes9, ArrayLength(bytes9))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes9, std::size(bytes9))));
   static const char bytes10[] = "abcdefghijklmnop\u061Cabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes10, ArrayLength(bytes10))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes10, std::size(bytes10))));
   static const char bytes11[] = "abcdefghijklmnop\uFB50abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes11, ArrayLength(bytes11))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes11, std::size(bytes11))));
   static const char bytes12[] = "abcdefghijklmnop\uFDFFabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes12, ArrayLength(bytes12))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes12, std::size(bytes12))));
   static const char bytes13[] = "abcdefghijklmnop\uFE70abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes13, ArrayLength(bytes13))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes13, std::size(bytes13))));
   static const char bytes14[] = "abcdefghijklmnop\uFEFEabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes14, ArrayLength(bytes14))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes14, std::size(bytes14))));
   static const char bytes15[] = "abcdefghijklmnop\u200Fabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes15, ArrayLength(bytes15))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes15, std::size(bytes15))));
   static const char bytes16[] = "abcdefghijklmnop\u202Babcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes16, ArrayLength(bytes16))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes16, std::size(bytes16))));
   static const char bytes17[] = "abcdefghijklmnop\u202Eabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes17, ArrayLength(bytes17))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes17, std::size(bytes17))));
   static const char bytes18[] = "abcdefghijklmnop\u2067abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes18, ArrayLength(bytes18))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes18, std::size(bytes18))));
   static const char bytes19[] = "abcdefghijklmnop\U00010800abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes19, ArrayLength(bytes19))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes19, std::size(bytes19))));
   static const char bytes20[] = "abcdefghijklmnop\u10FFFabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes20, ArrayLength(bytes20))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes20, std::size(bytes20))));
   static const char bytes21[] = "abcdefghijklmnop\U0001E800abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes21, ArrayLength(bytes21))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes21, std::size(bytes21))));
   static const char bytes22[] = "abcdefghijklmnop\U0001EFFFabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes22, ArrayLength(bytes22))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes22, std::size(bytes22))));
 }
 
 static void TestCheckStrForLatin1() {
   static const char bytes0[] = "abcdefghijklmnopaabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      UnsafeIsValidUtf8Latin1(Span(bytes0, ArrayLength(bytes0))));
+  MOZ_RELEASE_ASSERT(UnsafeIsValidUtf8Latin1(Span(bytes0, std::size(bytes0))));
   static const char bytes1[] = "abcdefghijklmnop\u00FEabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      UnsafeIsValidUtf8Latin1(Span(bytes1, ArrayLength(bytes1))));
+  MOZ_RELEASE_ASSERT(UnsafeIsValidUtf8Latin1(Span(bytes1, std::size(bytes1))));
   static const char bytes2[] = "abcdefghijklmnop\u03B1abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes2, ArrayLength(bytes2))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes2, std::size(bytes2))));
   static const char bytes3[] = "abcdefghijklmnop\u3041abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes3, ArrayLength(bytes3))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes3, std::size(bytes3))));
   static const char bytes4[] = "abcdefghijklmnop\U0001F4A9abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes4, ArrayLength(bytes4))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes4, std::size(bytes4))));
   static const char bytes5[] = "abcdefghijklmnop\uFE00abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes5, ArrayLength(bytes5))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes5, std::size(bytes5))));
   static const char bytes6[] = "abcdefghijklmnop\u202Cabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes6, ArrayLength(bytes6))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes6, std::size(bytes6))));
   static const char bytes7[] = "abcdefghijklmnop\uFEFFabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes7, ArrayLength(bytes7))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes7, std::size(bytes7))));
   static const char bytes8[] = "abcdefghijklmnop\u0590abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes8, ArrayLength(bytes8))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes8, std::size(bytes8))));
   static const char bytes9[] = "abcdefghijklmnop\u08FFabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes9, ArrayLength(bytes9))));
+  MOZ_RELEASE_ASSERT(!UnsafeIsValidUtf8Latin1(Span(bytes9, std::size(bytes9))));
   static const char bytes10[] = "abcdefghijklmnop\u061Cabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes10, ArrayLength(bytes10))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes10, std::size(bytes10))));
   static const char bytes11[] = "abcdefghijklmnop\uFB50abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes11, ArrayLength(bytes11))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes11, std::size(bytes11))));
   static const char bytes12[] = "abcdefghijklmnop\uFDFFabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes12, ArrayLength(bytes12))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes12, std::size(bytes12))));
   static const char bytes13[] = "abcdefghijklmnop\uFE70abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes13, ArrayLength(bytes13))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes13, std::size(bytes13))));
   static const char bytes14[] = "abcdefghijklmnop\uFEFEabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes14, ArrayLength(bytes14))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes14, std::size(bytes14))));
   static const char bytes15[] = "abcdefghijklmnop\u200Fabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes15, ArrayLength(bytes15))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes15, std::size(bytes15))));
   static const char bytes16[] = "abcdefghijklmnop\u202Babcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes16, ArrayLength(bytes16))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes16, std::size(bytes16))));
   static const char bytes17[] = "abcdefghijklmnop\u202Eabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes17, ArrayLength(bytes17))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes17, std::size(bytes17))));
   static const char bytes18[] = "abcdefghijklmnop\u2067abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes18, ArrayLength(bytes18))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes18, std::size(bytes18))));
   static const char bytes19[] = "abcdefghijklmnop\U00010800abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes19, ArrayLength(bytes19))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes19, std::size(bytes19))));
   static const char bytes20[] = "abcdefghijklmnop\u10FFFabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes20, ArrayLength(bytes20))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes20, std::size(bytes20))));
   static const char bytes21[] = "abcdefghijklmnop\U0001E800abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes21, ArrayLength(bytes21))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes21, std::size(bytes21))));
   static const char bytes22[] = "abcdefghijklmnop\U0001EFFFabcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      !UnsafeIsValidUtf8Latin1(Span(bytes22, ArrayLength(bytes22))));
+      !UnsafeIsValidUtf8Latin1(Span(bytes22, std::size(bytes22))));
 }
 
 static void TestConvertUtf16ToLatin1Lossy() {
@@ -344,8 +323,8 @@ static void TestConvertLatin1ToUtf8Partial() {
 
   size_t read;
   size_t written;
-  std::tie(read, written) = ConvertLatin1toUtf8Partial(Span(src, ArrayLength(src)),
-                                                  Span(dst, dstLen));
+  std::tie(read, written) =
+      ConvertLatin1toUtf8Partial(Span(src, std::size(src)), Span(dst, dstLen));
   MOZ_RELEASE_ASSERT(read == 1);
   MOZ_RELEASE_ASSERT(written == 1);
 }
@@ -399,32 +378,32 @@ static void TestConvertLatin1ToUtf16() {
 static void TestUtf8Latin1UpTo() {
   static const size_t baseLen = strlen("abcdefghijklmnop");
   static const char bytes0[] = "abcdefghijklmnopaabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8Latin1UpTo(Span(bytes0, ArrayLength(bytes0))) ==
-                     ArrayLength(bytes0));
+  MOZ_RELEASE_ASSERT(Utf8Latin1UpTo(Span(bytes0, std::size(bytes0))) ==
+                     std::size(bytes0));
   static const char bytes1[] = "abcdefghijklmnop\u00FEabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8Latin1UpTo(Span(bytes1, ArrayLength(bytes1))) ==
-                     ArrayLength(bytes1));
+  MOZ_RELEASE_ASSERT(Utf8Latin1UpTo(Span(bytes1, std::size(bytes1))) ==
+                     std::size(bytes1));
   static const char bytes2[] = "abcdefghijklmnop\u03B1abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8Latin1UpTo(Span(bytes2, ArrayLength(bytes2))) ==
+  MOZ_RELEASE_ASSERT(Utf8Latin1UpTo(Span(bytes2, std::size(bytes2))) ==
                      baseLen);
   static const char bytes23[] =
       "abcdefghijklmnop\x80\xBF"
       "abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(Utf8Latin1UpTo(Span(bytes23, ArrayLength(bytes23))) ==
+  MOZ_RELEASE_ASSERT(Utf8Latin1UpTo(Span(bytes23, std::size(bytes23))) ==
                      baseLen);
 }
 
 static void TestUnsafeValidUtf8Lati1UpTo() {
   static const size_t baseLen = strlen("abcdefghijklmnop");
   static const char bytes0[] = "abcdefghijklmnopaabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(UnsafeValidUtf8Lati1UpTo(Span(
-                         bytes0, ArrayLength(bytes0))) == ArrayLength(bytes0));
+  MOZ_RELEASE_ASSERT(UnsafeValidUtf8Lati1UpTo(
+                         Span(bytes0, std::size(bytes0))) == std::size(bytes0));
   static const char bytes1[] = "abcdefghijklmnop\u00FEabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(UnsafeValidUtf8Lati1UpTo(Span(
-                         bytes1, ArrayLength(bytes1))) == ArrayLength(bytes1));
+  MOZ_RELEASE_ASSERT(UnsafeValidUtf8Lati1UpTo(
+                         Span(bytes1, std::size(bytes1))) == std::size(bytes1));
   static const char bytes2[] = "abcdefghijklmnop\u03B1abcdefghijklmnop";
   MOZ_RELEASE_ASSERT(
-      UnsafeValidUtf8Lati1UpTo(Span(bytes2, ArrayLength(bytes2))) == baseLen);
+      UnsafeValidUtf8Lati1UpTo(Span(bytes2, std::size(bytes2))) == baseLen);
 }
 
 int main() {
