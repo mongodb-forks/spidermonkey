@@ -9,7 +9,6 @@
 #include "mozilla/TextUtils.h"
 
 using mozilla::ArrayEqual;
-using mozilla::ArrayLength;
 using mozilla::AsciiAlphanumericToNumber;
 using mozilla::AsciiValidUpTo;
 using mozilla::ConvertAsciitoUtf16;
@@ -1060,43 +1059,41 @@ static void TestIsAsciiDigit() {
   static_assert(!IsAsciiDigit(U'{'), "U'{' isn't an ASCII digit");
 }
 
-
 static void TestAsciiValidUpTo() {
   static const size_t baseLen = strlen("abcdefghijklmnop");
   static const char bytes0[] = "abcdefghijklmnopaabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes0, ArrayLength(bytes0))) ==
-                     ArrayLength(bytes0));
+  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes0, std::size(bytes0))) ==
+                     std::size(bytes0));
   static const char bytes1[] = "abcdefghijklmnop\u00FEabcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes1, ArrayLength(bytes1))) ==
+  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes1, std::size(bytes1))) ==
                      baseLen);
   static const char bytes2[] = "abcdefghijklmnop\u03B1abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes2, ArrayLength(bytes2))) ==
+  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes2, std::size(bytes2))) ==
                      baseLen);
   static const char bytes23[] =
       "abcdefghijklmnop\x80\xBF"
       "abcdefghijklmnop";
-  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes23, ArrayLength(bytes23))) ==
+  MOZ_RELEASE_ASSERT(AsciiValidUpTo(Span(bytes23, std::size(bytes23))) ==
                      baseLen);
 }
 
 static void TestUtf16ValidUpTo() {
   static const char16_t valid[] = {0, 0, 0, 0, 0,      0,      0,      0,
                                    0, 0, 0, 0, 0x2603, 0xD83D, 0xDCA9, 0x00B6};
-  MOZ_RELEASE_ASSERT(Utf16ValidUpTo(Span(valid, ArrayLength(valid))) == 16);
+  MOZ_RELEASE_ASSERT(Utf16ValidUpTo(Span(valid, std::size(valid))) == 16);
 
   static const char16_t loneHigh[] = {0, 0, 0, 0, 0, 0,      0,      0,
                                       0, 0, 0, 0, 0, 0x2603, 0xD83D, 0x00B6};
-  MOZ_RELEASE_ASSERT(Utf16ValidUpTo(Span(loneHigh, ArrayLength(loneHigh))) ==
-                     14);
+  MOZ_RELEASE_ASSERT(Utf16ValidUpTo(Span(loneHigh, std::size(loneHigh))) == 14);
 
   static const char16_t loneLow[] = {0, 0, 0, 0, 0, 0,      0,      0,
                                      0, 0, 0, 0, 0, 0x2603, 0xDCA9, 0x00B6};
-  MOZ_RELEASE_ASSERT(Utf16ValidUpTo(Span(loneLow, ArrayLength(loneLow))) == 14);
+  MOZ_RELEASE_ASSERT(Utf16ValidUpTo(Span(loneLow, std::size(loneLow))) == 14);
 
   static const char16_t loneHighAndEnd[] = {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x2603, 0x00B6, 0xD83D};
   MOZ_RELEASE_ASSERT(
-      Utf16ValidUpTo(Span(loneHighAndEnd, ArrayLength(loneHighAndEnd))) == 15);
+      Utf16ValidUpTo(Span(loneHighAndEnd, std::size(loneHighAndEnd))) == 15);
 }
 
 static void TestEnsureUtf16Validity() {
@@ -1109,8 +1106,8 @@ static void TestEnsureUtf16Validity() {
       0, 0,      0, 0, 0, 0,      0,      0, 0, 0, 0, 0, 0, 0,      0,
   };
 
-  EnsureUtf16ValiditySpan(Span(src, ArrayLength(src)));
-  MOZ_RELEASE_ASSERT(ArrayEqual(src, reference, ArrayLength(src)));
+  EnsureUtf16ValiditySpan(Span(src, std::size(src)));
+  MOZ_RELEASE_ASSERT(ArrayEqual(src, reference, std::size(src)));
 }
 
 static void TestConvertAsciitoUtf16() {
