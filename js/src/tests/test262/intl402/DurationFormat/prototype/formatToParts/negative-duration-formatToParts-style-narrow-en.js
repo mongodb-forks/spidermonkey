@@ -1,4 +1,4 @@
-// |reftest| skip-if(!Intl.hasOwnProperty('DurationFormat')) -- Intl.DurationFormat is not enabled unconditionally
+// |reftest| skip-if(!this.hasOwnProperty("Intl")||!Intl.hasOwnProperty('DurationFormat')) -- Intl.DurationFormat is not enabled unconditionally
 // Copyright (C) 2023 André Bargull. All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
