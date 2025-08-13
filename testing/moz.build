@@ -12,7 +12,8 @@ PYTHON_UNITTEST_MANIFESTS += ["test/python.toml"]
 
 SPHINX_TREES["/testing"] = "docs"
 
-DIRS += ["mozbase", "mozharness"]
+#MONGODB MODIFICATION: We removed mozharness files, so we also need to remove mozharness from this build file for testing.
+DIRS += ["mozbase"]
 
 PERFTESTS_MANIFESTS += [
     "performance/perftest.toml",
