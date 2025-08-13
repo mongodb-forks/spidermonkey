@@ -23,7 +23,8 @@ if not CONFIG["JS_STANDALONE"]:
 
 SPHINX_TREES["/testing"] = "docs"
 
-DIRS += ["manifest", "mozbase", "mozharness"]
+#MONGODB MODIFICATION: We removed mozharness files, so we also need to remove mozharness from this build file for testing.
+DIRS += ["manifest", "mozbase"]
 
 PERFTESTS_MANIFESTS += [
     "performance/perftest.toml",
