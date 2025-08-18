@@ -93,6 +93,8 @@ struct FreePolicy {
   void operator()(const void* ptr) { free(const_cast<void*>(ptr)); }
 };
 
+// MONOGDB MODIFICATION: We aren't able to compile with XP_UNIX/WIN/DARWIN and don't need these functions. 
+/*
 #if !defined(RUST_BINDGEN)
 #  if defined(XP_WIN)
 // Can't include <windows.h> to get the actual definition of HANDLE
@@ -164,6 +166,7 @@ struct FileHandleDeleter {
   MFBT_API void operator()(FileHandleHelper aHelper);
 };
 #endif
+*/
 
 #if defined(XP_DARWIN) && !defined(RUST_BINDGEN)
 struct MachPortHelper {
@@ -217,6 +220,9 @@ struct MachPortSetDeleter {
 template <typename T>
 using UniqueFreePtr = UniquePtr<T, detail::FreePolicy<T>>;
 
+// MONGODB MODIFICATION: The XP_UNIX/XP_WIN platform macros are specific to the internal mozjs
+// build system and aren't defined when compiling. Since this functionality is not required, commenting it out.
+/*
 #if !defined(RUST_BINDGEN)
 // A RAII class for the OS construct used for open files and similar
 // objects: a file descriptor on Unix or a handle on Windows.
@@ -253,6 +259,7 @@ inline UniqueMachSendRight RetainMachSendRight(mach_port_t aPort) {
   return nullptr;
 }
 #endif
+*/
 
 namespace detail {
 

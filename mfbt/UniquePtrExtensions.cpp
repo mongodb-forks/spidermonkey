@@ -17,6 +17,9 @@
 #endif
 
 namespace mozilla {
+// MONGODB MODIFICATION: The FileHandleHelper class has been commented out as XP_UNIX/XP_WIN platform macros are specific to the internal mozjs
+// build system and aren't defined when compiling. Since this functionality is not required, commenting it out.
+/*
 namespace detail {
 
 void FileHandleDeleter::operator()(FileHandleHelper aHelper) {
@@ -52,5 +55,6 @@ UniqueFileHandle DuplicateFileHandle(detail::FileHandleType aFile) {
   return nullptr;
 }
 #endif
+*/
 
 }  // namespace mozilla
