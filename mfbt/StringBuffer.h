@@ -61,7 +61,8 @@ class StringBuffer {
                "mStorageSize will truncate");
 
     size_t bytes = sizeof(StringBuffer) + aSize;
-    void* hdr = aArena ? moz_arena_malloc(*aArena, bytes) : malloc(bytes);
+    //MONGODB Modification: We must use our custom arena_malloc function instead of the mozJS one.
+    void* hdr = aArena ? js_arena_malloc(*aArena, bytes) : malloc(bytes);
     if (!hdr) {
       return nullptr;
     }
@@ -151,7 +152,8 @@ class StringBuffer {
     }
 
     size_t bytes = sizeof(StringBuffer) + aSize;
-    aHdr = aArena ? (StringBuffer*)moz_arena_realloc(*aArena, aHdr, bytes)
+    //MONGODB Modification: We must use our custom arena_realloc function instead of the mozJS one.
+    aHdr = aArena ? (StringBuffer*)js_arena_realloc(*aArena, aHdr, bytes)
                   : (StringBuffer*)realloc(aHdr, bytes);
     if (aHdr) {
       detail::RefCountLogger::logAddRef(aHdr, 1);
