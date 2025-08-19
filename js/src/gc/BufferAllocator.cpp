@@ -1598,7 +1598,8 @@ void* BufferAllocator::allocSmall(size_t bytes, bool nurseryOwned) {
     return nullptr;
   }
 
-  auto* cell = new (ptr) SmallBuffer();
+  //MONGODB MODIFICATION: Moves placement new call within SmallBuffer to resolve compilation error using GCC.
+  auto* cell = SmallBuffer::create(ptr);
   cell->setNurseryOwned(nurseryOwned);
   MOZ_ASSERT(cell->isNurseryOwned() == nurseryOwned);
   void* alloc = cell->data();
@@ -1619,7 +1620,8 @@ void* BufferAllocator::allocSmallInGC(size_t bytes, bool nurseryOwned) {
     return nullptr;
   }
 
-  auto* cell = new (ptr) SmallBuffer();
+  //MONGODB MODIFICATION: Moves placement new call within SmallBuffer to resolve compilation error using GCC.
+  auto* cell = SmallBuffer::create(ptr);;
   cell->setNurseryOwned(nurseryOwned);
   void* alloc = cell->data();
 
