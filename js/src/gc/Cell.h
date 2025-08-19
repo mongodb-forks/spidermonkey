@@ -889,6 +889,11 @@ inline bool TenuredThingIsMarkedAny<Cell>(Cell* thing) {
 
 class alignas(gc::CellAlignBytes) SmallBuffer : public TenuredCell {
  public:
+  //MONGODB MODIFICATION: Moves placement new call within SmallBuffer to resolve compilation error using GCC.
+  static SmallBuffer* create(void* ptr){
+    return new (ptr) SmallBuffer();
+  }
+
   static constexpr uintptr_t NURSERY_OWNED_BIT = Bit(3);
 
   void check() const {}  // No check value.
