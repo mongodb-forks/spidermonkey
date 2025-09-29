@@ -1,4 +1,4 @@
-// |reftest| skip-if(!xulRuntime.shell || !wasmIsSupported())
+// |reftest| skip-if(!xulRuntime.shell||!wasmIsSupported())
 /*
  * Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/licenses/publicdomain/
