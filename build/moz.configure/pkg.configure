@@ -12,7 +12,8 @@ def pkg_config(prefixes):
 
 @depends(compile_environment, target)
 def use_pkg_config(compile_environment, target):
-    return compile_environment and target.os not in ("WINNT", "OSX", "Android")
+    # MONGODB MODIFICATION: Allow on OSX and Windows
+    return compile_environment and target.os not in ("Android")
 
 
 pkg_config = check_prog(
