@@ -269,6 +269,17 @@ static inline void MOZ_CrashSequence(void* aAddress, intptr_t aLine) {
       "st.d %1,%0,0;\n"  // Write the line number to the crashing address
       :                  // no output registers
       : "r"(aAddress), "r"(aLine));
+// MONGODB MODIFICATION: Implement for ppc64le and s390x
+#  elif defined(__powerpc64__)
+  asm volatile(
+      "std %1, 0(%0);\n" // Write the line number to the crashing address
+      :                  // no output registers
+      : "r"(aAddress), "r"(aLine));
+#  elif defined(__s390x__)
+  asm volatile(
+      "stg %1, 0(%0);\n" // Write the line number to the crashing address
+      :                  // no output registers
+      : "r"(aAddress), "r"(aLine));
 #  else
 #    warning \
         "Unsupported architecture, replace the code below with assembly suitable to crash the process"
