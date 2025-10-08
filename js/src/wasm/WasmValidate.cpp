@@ -4252,7 +4252,8 @@ static bool DecodeNameSection(Decoder& d, CodeMetadata* codeMeta,
     return true;
   }
 
-  codeMeta->nameSection.emplace((NameSection){
+  // MONGODB MODIFICATION: Rewrite compound literal syntax not supported by MSVC
+  codeMeta->nameSection.emplace(NameSection{
       .customSectionIndex =
           uint32_t(codeMeta->customSectionRanges.length() - 1),
   });
