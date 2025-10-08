@@ -23,7 +23,14 @@
  * function that returns `Result<T, E>`.
  *
  * [0]: https://gcc.gnu.org/onlinedocs/gcc/Statement-Exprs.html
+ *
+ * MOZ_TRY_VAR(target, expr) is the C++ equivalent of Rust's `target =
+ * try!(expr);`. First, it evaluates expr, which must produce a Result value. On
+ * success, the result's success value is assigned to target. On error,
+ * immediately returns the error result. |target| must be an lvalue.
  */
+#ifndef _MSC_VER
+
 #define MOZ_TRY(expr)                                     \
   __extension__({                                         \
     auto mozTryVarTempResult = ::mozilla::ToResult(expr); \
@@ -32,5 +39,40 @@
     }                                                     \
     mozTryVarTempResult.unwrap();                         \
   })
+
+#define MOZ_TRY_VAR(target, expr) (target) = MOZ_TRY(expr);
+
+#else
+
+/**
+ * MONGODB MODIFICATION: statement expressions are a gcc extension
+ * unsupported by MSVC, reimplement with standard C++.
+ *
+ * This implementation doesn't return the result of expr,
+ * so MOZ_TRY_VAR should be used instead. If this is necessary
+ * behavior, consider implementing using a lambda
+ */
+#define MOZ_TRY(expr)                                   \
+  do {                                                  \
+    auto mozTryTempResult_ = ::mozilla::ToResult(expr); \
+    if (MOZ_UNLIKELY(mozTryTempResult_.isErr())) {      \
+      return mozTryTempResult_.propagateErr();          \
+    }                                                   \
+  } while (0)
+
+/**
+ * MONGODB MODIFICATION: statement expressions are a gcc extension
+ * unsupported by MSVC, reimplement with standard C++.
+ */
+#define MOZ_TRY_VAR(target, expr)                     \
+  do {                                                \
+    auto mozTryVarTempResult_ = (expr);               \
+    if (MOZ_UNLIKELY(mozTryVarTempResult_.isErr())) { \
+      return mozTryVarTempResult_.propagateErr();     \
+    }                                                 \
+    (target) = mozTryVarTempResult_.unwrap();         \
+  } while (0)
+
+#endif  // _MSC_VER
 
 #endif  // mozilla_Try_h
