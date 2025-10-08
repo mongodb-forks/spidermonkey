@@ -617,7 +617,8 @@ void StructuredPrinter::pushScope() {
     return;
   }
 
-  bool ok = scopes_.append((ScopeInfo){
+  // MONGODB MODIFICATION: Compound literal syntax not supported by MSVC
+  bool ok = scopes_.append(ScopeInfo{
       .startPos = uint32_t(buffer_.length()),
       .indent = scopeDepth() + 1,
   });
@@ -720,7 +721,8 @@ void StructuredPrinter::flush() {
 
 void StructuredPrinter::brk(const char* whenCollapsed,
                             const char* whenExpanded) {
-  Break b = (Break){
+  // MONGODB MODIFICATION: Compound literal syntax not supported by MSVC
+  Break b = Break{
       .bufferPos = uint32_t(buffer_.length()),
       .collapsed = whenCollapsed,
       .expanded = whenExpanded,
