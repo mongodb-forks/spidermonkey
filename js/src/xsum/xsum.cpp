@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <cinttypes>
 #include "xsum.h"
 
 /* ---------------------- IMPLEMENTATION ASSUMPTIONS ----------------------- */
@@ -265,8 +266,8 @@ static NOINLINE int xsum_carry_propagate(xsum_small_accumulator* sacc) {
 #endif
 
   /* At this point, sacc->chunk[u] must be non-zero */
-
-  if (xsum_debug) printf("u: %d, sacc->chunk[u]: %ld", u, sacc->chunk[u]);
+  // MONGODB MODIFICATION: Use portable format specifier
+  if (xsum_debug) printf("u: %d, sacc->chunk[u]: %" PRId64, u, sacc->chunk[u]);
 
   /* Carry propagate, starting at the low-order chunks.  Note that the
      loop limit of u may be increased inside the loop. */
