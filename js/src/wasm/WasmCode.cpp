@@ -131,13 +131,15 @@ bool wasm::StaticallyLink(jit::AutoMarkJitCodeWritableForThread& writable,
     Assembler::Bind(base, label);
   }
 
-  for (CallFarJump far : linkData.callFarJumps) {
+  // MONGODB MODIFICATION: Variable name "far" is a reserved keyword on windows
+  // and triggers a cryptic compilation error in MSVC
+  for (CallFarJump cfj : linkData.callFarJumps) {
     MOZ_ASSERT(maybeCode && maybeCode->mode() == CompileMode::LazyTiering);
-    const CodeBlock& bestBlock = maybeCode->funcCodeBlock(far.targetFuncIndex);
-    uint32_t stubRangeIndex = bestBlock.funcToCodeRange[far.targetFuncIndex];
+    const CodeBlock& bestBlock = maybeCode->funcCodeBlock(cfj.targetFuncIndex);
+    uint32_t stubRangeIndex = bestBlock.funcToCodeRange[cfj.targetFuncIndex];
     const CodeRange& stubRange = bestBlock.codeRanges[stubRangeIndex];
     uint8_t* stubBase = bestBlock.base();
-    MacroAssembler::patchFarJump(base + far.jumpOffset,
+    MacroAssembler::patchFarJump(base + cfj.jumpOffset,
                                  stubBase + stubRange.funcUncheckedCallEntry());
   }
 
