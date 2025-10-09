@@ -3351,7 +3351,8 @@ inline size_t BufferAllocator::SizeClassBytes(size_t sizeClass) {
     sizeClass--;
   }
 
-  return 1 << (sizeClass + MinSizeClassShift);
+  // MONGODB MODIFICATION: Make 64-bit shift explicit for MSVC
+  return (size_t)1 << (sizeClass + MinSizeClassShift);
 }
 
 /* static */
