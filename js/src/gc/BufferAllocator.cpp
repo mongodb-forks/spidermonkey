@@ -2410,7 +2410,8 @@ size_t BufferAllocator::SizeClassForFreeRegion(size_t bytes) {
 /* static */
 inline size_t BufferAllocator::SizeClassBytes(size_t sizeClass) {
   MOZ_ASSERT(sizeClass < MediumAllocClasses);
-  return 1 << (sizeClass + MinMediumAllocShift);
+  // MONGODB MODIFICATION: Make 64-bit shift explicit for MSVC
+  return (size_t)1 << (sizeClass + MinMediumAllocShift);
 }
 
 /* static */
