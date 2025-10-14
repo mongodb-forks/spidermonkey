@@ -1232,6 +1232,13 @@
   value: false
   mirror: always
 
+# On Windows, whether to bring the foreground window to the front when printing
+# to avoid a DLP agent stealing focus and cancelling the print (bug 1980225)
+- name: browser.contentanalysis.print_set_foreground_window
+  type: bool
+  value: true
+  mirror: always
+
 # What content analysis should return if there is a problem communicating
 # with the agent. (see DefaultResponse enum in ContentAnalysis.h)
 # Make sure these stay in sync with the out-of-range check in Policies.sys.mjs.
@@ -1335,6 +1342,16 @@
 - name: browser.contentanalysis.interception_point.clipboard.plain_text_only
   type: bool
   value: true
+  mirror: always
+
+# Should Firefox use content analysis for download operations?
+# Note that this has no effect unless browser.contentanalysis.enabled
+# is true.
+# This defaults to false so as to not break existing content analysis
+# configurations.
+- name: browser.contentanalysis.interception_point.download.enabled
+  type: bool
+  value: false
   mirror: always
 
 # Should Firefox use content analysis for drag and drop operations?
@@ -2167,6 +2184,18 @@
 #---------------------------------------------------------------------------
 
 - name: content.cors.disable
+  type: bool
+  value: false
+  mirror: always
+
+# If true, we'll use the triggering principal rather than the loading principal
+# when doing CORS checks.  Doing so is generally not correct, but we shipped
+# with this behavior for a long time, so we're leaving it preffable in case
+# it's needed for testing or if we discover some edge case that requires it.
+#
+# TODO(dholbert): Remove this pref after the 'false' default-value has
+# successfully shipped for a release or two.
+- name: content.cors.use_triggering_principal
   type: bool
   value: false
   mirror: always
@@ -3615,6 +3644,12 @@
 - name: dom.noopener.newprocess.enabled
   type: bool
   value: true
+  mirror: always
+
+# Whether the codebase attribute in an <object> is used as the base URI.
+- name: dom.object_embed.codebase.enabled
+  type: bool
+  value: false
   mirror: always
 
 # Whether origin trials are enabled.
@@ -13141,6 +13176,12 @@
   value: true
   mirror: always
 
+# When true, Firefox will reject nameless cookies that contain `=` in value.
+- name: network.cookie.block_nameless_with_equal_char
+  type: RelaxedAtomicBool
+  value: true
+  mirror: always
+
 # If we should attempt to race the cache and network.
 - name: network.http.rcwn.enabled
   type: bool
@@ -15589,6 +15630,14 @@
   value: false
   mirror: always
 
+# Whether we directly use the system print dialog to collect the user's print
+# settings rather than using the tab-modal print preview dialog.
+# Note: `print.always_print_silent` overrides this.
+- name: print.prefer_system_dialog
+  type: RelaxedAtomicBool
+  value: false
+  mirror: always
+
 # Whether we attempt to generate links in Save As PDF output.
 - name: print.save_as_pdf.links.enabled
   type: RelaxedAtomicBool
@@ -16320,7 +16369,7 @@
 
 - name: security.csp.truncate_blocked_uri_for_frame_navigations
   type: bool
-  value: true
+  value: false
   mirror: always
 
 # Limit the number of CSP reports that are send in a specific timespan.
