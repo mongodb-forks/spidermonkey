@@ -23,6 +23,22 @@
 namespace js {
 namespace wasm {
 
+void JumpTables::setJitEntry(size_t i, void* target) const {
+  // Make sure that write is atomic; see comment in wasm::Module::finishTier2
+  // to that effect.
+  MOZ_ASSERT(i < numFuncs_);
+
+#ifdef _MSC_VER
+  // On MSVC, fall back to non-atomic behavior
+  // atomics were added here to improve TSAN output, but this logic
+  // does not rely on atomic synchronization
+  // See commit message 7fedc0617125 for more context
+  jit_.get()[i] = target;
+#else
+  __atomic_store_n(&jit_.get()[i], target, __ATOMIC_RELAXED);
+#endif
+}
+
 void JumpTables::setJitEntryIfNull(size_t i, void* target) const {
   // Make sure that compare-and-write is atomic; see comment in
   // wasm::Module::finishTier2 to that effect.
