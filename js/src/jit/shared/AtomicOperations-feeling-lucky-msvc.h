@@ -52,6 +52,10 @@ inline void js::jit::AtomicOperations::fenceSeqCst() {
   (void*)InterlockedExchange(&barrier, 0);
 }
 
+inline void js::jit::AtomicOperations::pause() {
+  YieldProcessor();
+}
+
 template <typename T>
 inline T js::jit::AtomicOperations::loadSeqCst(T* addr) {
   // Aligned reads of up to 8 bytes are guaranteed atomic on x86-64.
