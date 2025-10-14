@@ -899,12 +899,7 @@ class JumpTables {
   bool initialize(CompileMode mode, const CodeMetadata& codeMeta,
                   const CodeBlock& sharedStubs, const CodeBlock& tier1);
 
-  void setJitEntry(size_t i, void* target) const {
-    // Make sure that write is atomic; see comment in wasm::Module::finishTier2
-    // to that effect.
-    MOZ_ASSERT(i < numFuncs_);
-    __atomic_store_n(&jit_.get()[i], target, __ATOMIC_RELAXED);
-  }
+  void setJitEntry(size_t i, void* target) const;
   void setJitEntryIfNull(size_t i, void* target) const;
   void** getAddressOfJitEntry(size_t i) const {
     MOZ_ASSERT(i < numFuncs_);
