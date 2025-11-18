@@ -43,6 +43,16 @@ extern MOZ_NORETURN MOZ_COLD JS_PUBLIC_API void JS_Assert(const char* s,
 #  include "jscustomallocator.h"
 #else
 
+/*
+ * MONGODB MODIFICATION: These functions are implemented by jscustomallocator
+ * This logic is unused when running Without JS_USE_CUSTOM_ALLOCATOR
+ */
+namespace mongo {
+namespace sm {
+JS_PUBLIC_API void check_oom_on_mmap_allocation(size_t bytes);
+}  // namespace sm
+}  // namespace mongo
+
 namespace js {
 
 /*

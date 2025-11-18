@@ -1145,6 +1145,11 @@ void RecordMemoryAlloc(size_t bytes) {
   MOZ_ASSERT(bytes);
   MOZ_ASSERT((bytes % pageSize) == 0);
 
+  // MONGODB MODIFICATION: Check whether this allocation took us over a
+  // configured memory limit. This may trigger OOM in the background, but we
+  // allow the mozjs logic to proceed normally for now
+  mongo::sm::check_oom_on_mmap_allocation(bytes);
+
   gMappedMemorySizeBytes += bytes;
   gMappedMemoryOperations++;
 }
