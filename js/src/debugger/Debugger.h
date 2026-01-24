@@ -1323,6 +1323,141 @@ struct InternalBarrierMethods<Debugger*> {
 #endif
 };
 
+// MONGODB MODIFICATION: Specialize InternalBarrierMethods for DebuggerEnvironment* to avoid MSVC
+// requiring complete type for std::is_base_of check in Barrier.h.
+template <>
+struct InternalBarrierMethods<DebuggerEnvironment*> {
+  static bool isMarkable(DebuggerEnvironment* env) { return env != nullptr; }
+
+  static void preBarrier(DebuggerEnvironment* env) {
+    InternalBarrierMethods<JSObject*>::preBarrier((JSObject*)env);
+  }
+
+  static void postBarrier(DebuggerEnvironment** vp, DebuggerEnvironment* prev, DebuggerEnvironment* next) {
+    InternalBarrierMethods<JSObject*>::postBarrier((JSObject**)vp, (JSObject*)prev, (JSObject*)next);
+  }
+
+  static void readBarrier(DebuggerEnvironment* env) {
+    InternalBarrierMethods<JSObject*>::readBarrier((JSObject*)env);
+  }
+
+#ifdef DEBUG
+  static void assertThingIsNotGray(DebuggerEnvironment* env) {
+    if (env) {
+      InternalBarrierMethods<JSObject*>::assertThingIsNotGray((JSObject*)env);
+    }
+  }
+#endif
+};
+
+// MONGODB MODIFICATION: Specialize InternalBarrierMethods for DebuggerSource* to avoid MSVC
+// requiring complete type for std::is_base_of check in Barrier.h.
+template <>
+struct InternalBarrierMethods<DebuggerSource*> {
+  static bool isMarkable(DebuggerSource* src) { return src != nullptr; }
+
+  static void preBarrier(DebuggerSource* src) {
+    InternalBarrierMethods<JSObject*>::preBarrier((JSObject*)src);
+  }
+
+  static void postBarrier(DebuggerSource** vp, DebuggerSource* prev, DebuggerSource* next) {
+    InternalBarrierMethods<JSObject*>::postBarrier((JSObject**)vp, (JSObject*)prev, (JSObject*)next);
+  }
+
+  static void readBarrier(DebuggerSource* src) {
+    InternalBarrierMethods<JSObject*>::readBarrier((JSObject*)src);
+  }
+
+#ifdef DEBUG
+  static void assertThingIsNotGray(DebuggerSource* src) {
+    if (src) {
+      InternalBarrierMethods<JSObject*>::assertThingIsNotGray((JSObject*)src);
+    }
+  }
+#endif
+};
+
+// MONGODB MODIFICATION: Specialize InternalBarrierMethods for DebuggerScript* to avoid MSVC
+// requiring complete type for std::is_base_of check in Barrier.h.
+template <>
+struct InternalBarrierMethods<DebuggerScript*> {
+  static bool isMarkable(DebuggerScript* script) { return script != nullptr; }
+
+  static void preBarrier(DebuggerScript* script) {
+    InternalBarrierMethods<JSObject*>::preBarrier((JSObject*)script);
+  }
+
+  static void postBarrier(DebuggerScript** vp, DebuggerScript* prev, DebuggerScript* next) {
+    InternalBarrierMethods<JSObject*>::postBarrier((JSObject**)vp, (JSObject*)prev, (JSObject*)next);
+  }
+
+  static void readBarrier(DebuggerScript* script) {
+    InternalBarrierMethods<JSObject*>::readBarrier((JSObject*)script);
+  }
+
+#ifdef DEBUG
+  static void assertThingIsNotGray(DebuggerScript* script) {
+    if (script) {
+      InternalBarrierMethods<JSObject*>::assertThingIsNotGray((JSObject*)script);
+    }
+  }
+#endif
+};
+
+// MONGODB MODIFICATION: Specialize InternalBarrierMethods for DebuggerObject* to avoid MSVC
+// requiring complete type for std::is_base_of check in Barrier.h.
+template <>
+struct InternalBarrierMethods<DebuggerObject*> {
+  static bool isMarkable(DebuggerObject* obj) { return obj != nullptr; }
+
+  static void preBarrier(DebuggerObject* obj) {
+    InternalBarrierMethods<JSObject*>::preBarrier((JSObject*)obj);
+  }
+
+  static void postBarrier(DebuggerObject** vp, DebuggerObject* prev, DebuggerObject* next) {
+    InternalBarrierMethods<JSObject*>::postBarrier((JSObject**)vp, (JSObject*)prev, (JSObject*)next);
+  }
+
+  static void readBarrier(DebuggerObject* obj) {
+    InternalBarrierMethods<JSObject*>::readBarrier((JSObject*)obj);
+  }
+
+#ifdef DEBUG
+  static void assertThingIsNotGray(DebuggerObject* obj) {
+    if (obj) {
+      InternalBarrierMethods<JSObject*>::assertThingIsNotGray((JSObject*)obj);
+    }
+  }
+#endif
+};
+
+// MONGODB MODIFICATION: Specialize InternalBarrierMethods for DebuggerFrame* to avoid MSVC
+// requiring complete type for std::is_base_of check in Barrier.h.
+template <>
+struct InternalBarrierMethods<DebuggerFrame*> {
+  static bool isMarkable(DebuggerFrame* frame) { return frame != nullptr; }
+
+  static void preBarrier(DebuggerFrame* frame) {
+    InternalBarrierMethods<JSObject*>::preBarrier((JSObject*)frame);
+  }
+
+  static void postBarrier(DebuggerFrame** vp, DebuggerFrame* prev, DebuggerFrame* next) {
+    InternalBarrierMethods<JSObject*>::postBarrier((JSObject**)vp, (JSObject*)prev, (JSObject*)next);
+  }
+
+  static void readBarrier(DebuggerFrame* frame) {
+    InternalBarrierMethods<JSObject*>::readBarrier((JSObject*)frame);
+  }
+
+#ifdef DEBUG
+  static void assertThingIsNotGray(DebuggerFrame* frame) {
+    if (frame) {
+      InternalBarrierMethods<JSObject*>::assertThingIsNotGray((JSObject*)frame);
+    }
+  }
+#endif
+};
+
 /**
  * This class exists for one specific reason. If a given Debugger object is in
  * a state where:
