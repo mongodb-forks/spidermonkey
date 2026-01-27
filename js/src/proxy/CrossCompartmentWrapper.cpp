@@ -6,6 +6,10 @@
 
 #include "builtin/FinalizationRegistryObject.h"
 #include "debugger/Debugger.h"
+#include "debugger/Environment.h"
+#include "debugger/Frame.h"
+#include "debugger/Script.h"
+#include "debugger/Source.h"
 #include "gc/GC.h"
 #include "gc/PublicIterators.h"
 #include "js/friend/WindowProxy.h"  // js::IsWindow, js::IsWindowProxy
