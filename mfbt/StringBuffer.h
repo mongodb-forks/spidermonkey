@@ -17,6 +17,7 @@
 #include "mozilla/RefCounted.h"
 #include "mozmemory.h"
 // MONGODB MODIFICATION: Explicitly include Utility.h for arena allocation functions.
+// Needed for backports to 8.0 and earlier due to clang-format header ordering changes (SERVER-105050).
 #include "js/Utility.h"
 
 namespace mozilla {
