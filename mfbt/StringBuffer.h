@@ -17,7 +17,7 @@
 #include "mozilla/RefCounted.h"
 #include "mozmemory.h"
 // MONGODB MODIFICATION: Explicitly include Utility.h for arena allocation functions.
-#include "js/public/Utility.h"
+#include "js/Utility.h"
 
 namespace mozilla {
 
