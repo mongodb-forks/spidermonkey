@@ -18,9 +18,9 @@
 
 // MONGODB MODIFICATION: fmt version compatibility macro for Mongo v8.0 and below.
 #if defined(FMT_VERSION) && FMT_VERSION >= 80000
-#  define JS_FORMAT_STRING(...) fmt::format_string<__VA_ARGS__>
+#  define FMT_FORMAT_STRING(...) fmt::format_string<__VA_ARGS__>
 #else
-#  define JS_FORMAT_STRING(...) fmt::string_view
+#  define FMT_FORMAT_STRING(...) fmt::string_view
 #endif
 
 struct JSContext;
@@ -84,7 +84,7 @@ struct LoggingInterface {
 
   template <typename... T>
   void logPrintFmt(const OpaqueLogger aModule, mozilla::LogLevel aLevel,
-                   JS_FORMAT_STRING(T...) aFmt, T&&... aArgs) {
+                   FMT_FORMAT_STRING(T...) aFmt, T&&... aArgs) {
     JS::AutoSuppressGCAnalysis suppress;
     this->logPrintFMT(aModule, aLevel, aFmt, fmt::make_format_args(aArgs...));
   }
