@@ -92,11 +92,12 @@
 #include "mozilla/Try.h"
 #include "mozilla/WrappingOperations.h"
 
-#include <charconv>
 #include <functional>
 #include <limits>
 #include <memory>
 #include <type_traits>  // std::is_same_v
+
+#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
 
 #include "jsnum.h"
 
@@ -1315,8 +1316,8 @@ JSLinearString* BigInt::toStringSingleDigit(JSContext* cx, Digit digit,
     *chars++ = '-';
   }
 
-  auto result = std::to_chars(chars, std::end(resultChars), digit, radix);
-  MOZ_ASSERT(result.ec == std::errc());
+  // MONGODB MODIFICATION: use MONGO_MOZJS_TO_CHARS for macOS < 10.15 compatibility.
+  auto result = MONGO_MOZJS_TO_CHARS(chars, std::end(resultChars), digit, radix);
 
   size_t length = result.ptr - resultChars;
   MOZ_ASSERT(length <= maxLength);
