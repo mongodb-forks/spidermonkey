@@ -97,8 +97,6 @@
 #include <memory>
 #include <type_traits>  // std::is_same_v
 
-#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
-
 #include "jsnum.h"
 
 #include "gc/GCEnum.h"
@@ -109,6 +107,7 @@
 #include "js/Utility.h"
 #include "util/CheckedArithmetic.h"
 #include "util/DifferentialTesting.h"
+#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
 #include "vm/JSONPrinter.h"  // js::JSONPrinter
 #include "vm/StaticStrings.h"
 

@@ -16,8 +16,6 @@
 #include <iterator>
 #include <string.h>
 
-#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
-
 #include "jstypes.h"
 
 #include "frontend/CompilationStencil.h"
@@ -28,6 +26,7 @@
 #include "js/friend/ErrorMessages.h"  // js::GetErrorMessage, JSMSG_*
 #include "js/Symbol.h"
 #include "util/Text.h"
+#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
 #include "vm/JSContext.h"
 #include "vm/JSObject.h"
 #include "vm/StaticStrings.h"
