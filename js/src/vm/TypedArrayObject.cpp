@@ -27,8 +27,6 @@
 #endif
 #include <type_traits>
 
-#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
-
 #include "jstypes.h"
 
 #include "builtin/Array.h"
@@ -48,6 +46,7 @@
 #include "util/DifferentialTesting.h"
 #include "util/StringBuilder.h"
 #include "util/Text.h"
+#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
 #include "util/WindowsWrapper.h"
 #include "vm/ArrayBufferObject.h"
 #include "vm/EqualityOperations.h"
