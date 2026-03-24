@@ -13,6 +13,8 @@
 
 #include <charconv>
 
+#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
+
 #include "jstypes.h"
 
 #include "frontend/CompilationStencil.h"
@@ -900,8 +902,8 @@ bool js::IndexToIdSlow(JSContext* cx, uint32_t index, MutableHandleId idp) {
 
   char buf[UINT32_CHAR_BUFFER_LENGTH];
 
-  auto result = std::to_chars(buf, buf + std::size(buf), index, 10);
-  MOZ_ASSERT(result.ec == std::errc());
+  // MONGODB MODIFICATION: use MONGO_MOZJS_TO_CHARS for macOS < 10.15 compatibility.
+  auto result = MONGO_MOZJS_TO_CHARS(buf, buf + std::size(buf), index, 10);
 
   size_t length = result.ptr - buf;
   JSAtom* atom = Atomize(cx, buf, length);

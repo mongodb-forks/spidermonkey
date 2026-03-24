@@ -17,7 +17,6 @@
 #include "mozilla/TextUtils.h"
 
 #include <algorithm>
-#include <charconv>
 #include <iterator>
 #include <limits>
 #include <numeric>
@@ -27,6 +26,8 @@
 #  include <sys/mman.h>
 #endif
 #include <type_traits>
+
+#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
 
 #include "jstypes.h"
 
@@ -2346,9 +2347,9 @@ static bool TypedArrayJoinKernel(JSContext* cx,
           std::numeric_limits<NativeType>::is_signed;
 
       char str[MaximumLength] = {};
-      auto result = std::to_chars(str, std::end(str),
-                                  static_cast<ExternalType>(element), 10);
-      MOZ_ASSERT(result.ec == std::errc());
+      // MONGODB MODIFICATION: use MONGO_MOZJS_TO_CHARS for macOS < 10.15 compatibility.
+      auto result = MONGO_MOZJS_TO_CHARS(str, std::end(str),
+                                 static_cast<ExternalType>(element), 10);
 
       size_t strlen = result.ptr - str;
       if (!sb.append(str, strlen)) {
