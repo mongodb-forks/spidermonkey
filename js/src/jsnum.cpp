@@ -27,8 +27,6 @@
 #include <string.h>  // memmove
 #include <string_view>
 
-#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
-
 #include "jstypes.h"
 
 #include "builtin/String.h"
@@ -47,6 +45,7 @@
 #include "util/DoubleToString.h"
 #include "util/Memory.h"
 #include "util/StringBuilder.h"
+#include "util/ToCharsCompat.h"  // MONGODB MODIFICATION: MONGO_MOZJS_TO_CHARS
 #include "vm/BigIntType.h"
 #include "vm/GlobalObject.h"
 #include "vm/JSAtomUtils.h"  // Atomize, AtomizeString
