@@ -21,10 +21,10 @@
 #if defined(__APPLE__) && defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && \
     __MAC_OS_X_VERSION_MIN_REQUIRED < 101500
 
+#include "mozilla/Assertions.h"
+
 #include <limits>
 #include <type_traits>
-
-#include "mozilla/Assertions.h"
 
 namespace js::detail {
 
@@ -88,9 +88,9 @@ ToCharsResult portable_to_chars(char* first, char* last, T value, int base) {
 
 #else  // macOS >= 10.15 or non-Apple platforms: use std::to_chars directly.
 
-#include <charconv>
-
 #include "mozilla/Assertions.h"
+
+#include <charconv>
 
 namespace js::detail {
 
