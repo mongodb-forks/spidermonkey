@@ -5,21 +5,7 @@
 # and do not need to be listed here. Their external dependencies are vendored
 # into `third_party/rust` by `mach vendor rust`.
 members = [
-  "browser/app/nmhproxy/",
   "js/src/rust",
-  "netwerk/base/idna_glue",
-  "security/manager/ssl/osclientcerts",
-  "security/manager/ssl/tests/unit/pkcs11testmodule",
-  "security/manager/ssl/tests/unit/test_trust_anchors",
-  "security/manager/ssl/trust_anchors",
-  "security/mls/mls_gk",
-  "testing/geckodriver",
-  "toolkit/components/uniffi-bindgen-gecko-js",
-  "toolkit/crashreporter/client/app",
-  "toolkit/crashreporter/crash_helper_server",
-  "toolkit/crashreporter/crash_helper_client",
-  "toolkit/crashreporter/minidump-analyzer/android/export",
-  "toolkit/library/rust/",
 ]
 
 # Excluded crates may be built as dependencies, but won't be considered members
