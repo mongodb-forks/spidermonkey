@@ -8,21 +8,7 @@
 # Firefox crate directories were removed by the Non-SpiderMonkey file removal
 # commit and are not present in the MongoDB SpiderMonkey fork.
 members = [
-  "browser/app/nmhproxy/",
   "js/src/rust",
-  "netwerk/base/idna_glue",
-  "security/manager/ssl/osclientcerts",
-  "security/manager/ssl/tests/unit/pkcs11testmodule",
-  "security/manager/ssl/tests/unit/test_trust_anchors",
-  "security/manager/ssl/trust_anchors",
-  "security/mls/mls_gk",
-  "testing/geckodriver",
-  "toolkit/components/uniffi-bindgen-gecko-js",
-  "toolkit/crashreporter/client/app",
-  "toolkit/crashreporter/crash_helper_server",
-  "toolkit/crashreporter/crash_helper_client",
-  "toolkit/crashreporter/minidump-analyzer/android/export",
-  "toolkit/library/rust/",
 ]
 
 # Excluded crates may be built as dependencies, but won't be considered members
@@ -259,6 +245,10 @@ midir = { git = "https://github.com/mozilla/midir.git", rev = "85156e360a37d8517
 malloc_size_of_derive = { path = "xpcom/rust/malloc_size_of_derive" }
 # Use the in-tree code instead of pulling it in. It matches the crates.io version
 wr_malloc_size_of = { path = "gfx/wr/wr_malloc_size_of" }
+# MONGODB MODIFICATION: Upstream esr140.11 adds an encoding_rs git-source patch
+# here to fix --enable-rust-simd compatibility with Rust 1.95. Omitted because
+# gen-config.sh uses a vendored source override (.cargo/config.toml) that
+# redirects all crate sources to third_party/rust/; the git patch is unused.
 
 # objc 0.2.7 + fa7ca43b862861dd1cd000d7ad01e6e0266cda13
 objc = { git = "https://github.com/glandium/rust-objc", rev = "4de89f5aa9851ceca4d40e7ac1e2759410c04324" }
