@@ -4,12 +4,13 @@
 # Their transitive dependencies and dev-dependencies are included automatically
 # and do not need to be listed here. Their external dependencies are vendored
 # into `third_party/rust` by `mach vendor rust`.
+# MONGODB MODIFICATION: Workspace members reduced to only js/src/rust. All other
+# Firefox crate directories were removed by the Non-SpiderMonkey file removal
+# commit and are not present in the MongoDB SpiderMonkey fork.
 members = [
   "browser/app/nmhproxy/",
   "js/src/rust",
   "netwerk/base/idna_glue",
-  "netwerk/test/http3server",
-  "security/manager/ssl/ipcclientcerts",
   "security/manager/ssl/osclientcerts",
   "security/manager/ssl/tests/unit/pkcs11testmodule",
   "security/manager/ssl/tests/unit/test_trust_anchors",
@@ -21,8 +22,6 @@ members = [
   "toolkit/crashreporter/crash_helper_server",
   "toolkit/crashreporter/crash_helper_client",
   "toolkit/crashreporter/minidump-analyzer/android/export",
-  "toolkit/crashreporter/mozwer-rust",
-  "toolkit/library/gtest/rust",
   "toolkit/library/rust/",
 ]
 
