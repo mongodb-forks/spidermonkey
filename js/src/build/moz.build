@@ -52,6 +52,12 @@ if CONFIG["JS_HAS_INTL_API"]:
 
 USE_LIBS += [
     "fdlibm",
+    # MONGODB MODIFICATION: mfbt provides gMozCrashReason (mfbt/Assertions.cpp),
+    # required when libjsrust.a is linked into libmozjs via FINAL_LIBRARY=js in
+    # js/src/rust/moz.build. Upstream avoids this because libmozjs is always linked
+    # into libxul which already carries mfbt; the standalone shared library build
+    # does not.
+    "mfbt",
     "nspr",
 ]
 

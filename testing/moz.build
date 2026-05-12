@@ -12,7 +12,10 @@ PYTHON_UNITTEST_MANIFESTS += ["test/python.toml"]
 
 SPHINX_TREES["/testing"] = "docs"
 
-DIRS += ["mozbase", "mozharness"]
+# MONGODB MODIFICATION: mozharness directory is not present in the MongoDB
+# SpiderMonkey fork. Removed the reference here to avoid configure failure
+# when reading moz.build files; mozharness is not used in SpiderMonkey builds.
+DIRS += ["mozbase"]
 
 PERFTESTS_MANIFESTS += [
     "performance/perftest.toml",
