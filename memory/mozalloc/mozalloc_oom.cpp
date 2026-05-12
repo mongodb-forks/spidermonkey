@@ -5,9 +5,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "mozilla/mozalloc_abort.h"
-#include "mozilla/mozalloc_oom.h"
-#include "mozilla/Assertions.h"
+// MONGODB MODIFICATION: Replace the mozalloc header chain with minimal
+// includes. mozalloc_abort.cpp redefines abort() process-wide on Unix, which
+// is not appropriate for embedding. We call fputs + std::abort() directly.
+#include "mozilla/Types.h"
+#include <cstdlib>
+#include <stdio.h>
 
 #define OOM_MSG_LEADER "out of memory: 0x"
 #define OOM_MSG_DIGITS "0000000000000000"  // large enough for 2^64
@@ -20,33 +23,25 @@ MFBT_DATA size_t gOOMAllocationSize = 0;
 
 static const char* hex = "0123456789ABCDEF";
 
-void mozalloc_handle_oom(size_t size) {
+MFBT_API void mozalloc_handle_oom(size_t size) {
   char oomMsg[] = OOM_MSG_LEADER OOM_MSG_DIGITS OOM_MSG_TRAILER;
   size_t i;
-
-  // NB: this is handle_oom() stage 1, which simply aborts on OOM.
-  // we might proceed to a stage 2 in which an attempt is made to
-  // reclaim memory
-  // Warning: when stage 2 is done by, for example, notifying
-  // "memory-pressure" synchronously, please audit all
-  // nsExpirationTrackers and ensure that the actions they take
-  // on memory-pressure notifications (via NotifyExpired) are safe.
-  // Note that Document::SelectorCache::NotifyExpired is _known_
-  // to not be safe: it will delete the selector it's caching,
-  // which might be in use at the time under querySelector or
-  // querySelectorAll.
 
   gOOMAllocationSize = size;
 
   static_assert(OOM_MSG_FIRST_DIGIT_OFFSET > 0,
                 "Loop below will never terminate (i can't go below 0)");
 
-  // Insert size into the diagnostic message using only primitive operations
+  // Insert size into the diagnostic message using only primitive operations.
   for (i = OOM_MSG_LAST_DIGIT_OFFSET; size && i >= OOM_MSG_FIRST_DIGIT_OFFSET;
        i--) {
     oomMsg[i] = hex[size % 16];
     size /= 16;
   }
 
-  mozalloc_abort(oomMsg);
+  // MONGODB MODIFICATION: Write the message and abort directly instead of
+  // calling mozalloc_abort().
+  fputs(oomMsg, stderr);
+  fputs("\n", stderr);
+  std::abort();
 }
