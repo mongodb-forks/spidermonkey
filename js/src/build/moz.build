@@ -58,6 +58,12 @@ USE_LIBS += [
     # into libxul which already carries mfbt; the standalone shared library build
     # does not.
     "mfbt",
+    # MONGODB MODIFICATION: mozglue provides mozilla::PrintfTarget (mozglue/misc/Printf.cpp),
+    # required when libjsrust.a is linked into libmozjs via FINAL_LIBRARY=js in
+    # js/src/rust/moz.build. Upstream avoids this because libmozjs is always linked
+    # into libxul which already carries mozglue; the standalone shared library build
+    # does not.
+    "mozglue",
     "nspr",
 ]
 
