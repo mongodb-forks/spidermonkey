@@ -47,9 +47,17 @@ for stlfile in ["jsdate.*", "jsnum.*"]:
 with Files("builtin/intl/*"):
     BUG_COMPONENT = component_intl
 
+# MONGODB MODIFICATION: Include rust/ for all standalone builds regardless of
+# whether the shell is enabled. libjsrust.a provides encoding_rs symbols used
+# by the C++ headers (Latin1.h, TextUtils.h, Utf8.h) and must be linked even
+# when --disable-js-shell is used for extraction. In Firefox's full tree build
+# JS_STANDALONE is False and encoding_rs comes through libxul instead, so this
+# condition preserves the original behavior for that case.
+if CONFIG["JS_STANDALONE"] or not CONFIG["JS_DISABLE_SHELL"]:
+    DIRS += ["rust"]
+
 if not CONFIG["JS_DISABLE_SHELL"]:
     DIRS += [
-        "rust",
         "shell",
     ]
 
