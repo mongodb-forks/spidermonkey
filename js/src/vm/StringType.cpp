@@ -647,14 +647,11 @@ static MOZ_ALWAYS_INLINE bool AllocCharsForFlatten(Nursery& nursery,
   static_assert(StringBuffer::IsValidLength<CharT>(JSString::MAX_LENGTH),
                 "JSString length must be valid for StringBuffer");
 
-  // MONGODB MODIFICATION (SERVER-134946): reworded the capacity comment below; it had
-  // hard-coded the 8-byte StringBuffer header and a 2048-byte allocation example, which
-  // went stale when the provenance field grew the header.
-  // Include extra space for the StringBuffer header and the null-terminator
-  // before calculating the capacity. This ensures we make good use of
-  // jemalloc's bucket sizes: the capacity is rounded up to a bucket boundary
-  // that already accounts for the header and terminator, rather than wasting a
-  // whole bucket on them.
+  // Include extra space for the header and the null-terminator before
+  // calculating the capacity. This ensures we make good use of jemalloc's
+  // bucket sizes. For example, for a Latin1 string with length 2000 we want to
+  // get a capacity of 2039 (chars). With the StringBuffer header (8 bytes) and
+  // the null-terminator this results in an allocation of 2048 bytes.
   //
   // Note: the null-terminator will not be included in the extensible string's
   // capacity field.

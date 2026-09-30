@@ -173,8 +173,7 @@ JSLinearString* StringBuilder::finishStringInternal(JSContext* cx,
   // StringBuilderAllocPolicy, so it is counted by the custom allocator and must
   // be released through js_free.
   RefPtr<mozilla::StringBuffer> buffer = mozilla::StringBuffer::ConstructInPlace(
-      mem, (len + 1) * sizeof(CharT),
-      mozilla::StringBuffer::AllocProvenance::JsArena);
+      mem, (len + 1) * sizeof(CharT), /*aFromArenaAllocator=*/true);
   MOZ_ASSERT(buffer->Data() == mem + numHeaderChars_,
              "chars are where mozilla::StringBuffer expects them");
   MOZ_ASSERT(static_cast<CharT*>(buffer->Data())[len] == '\0',

@@ -47,11 +47,6 @@ class StringBuffer {
  public:
   MOZ_DECLARE_REFCOUNTED_TYPENAME(StringBuffer)
 
-  // MONGODB MODIFICATION (SERVER-134946): Whether a buffer's storage was allocated with
-  // a JS arena allocator (counted by the custom allocator) or with plain malloc. Callers
-  // of ConstructInPlace must state this so Release() can pick the matching free path.
-  enum class AllocProvenance { PlainMalloc, JsArena };
-
   /**
    * Allocates a new string buffer, with given size in bytes and a
    * reference count of one.  When the string buffer is no longer needed,
@@ -83,9 +78,7 @@ class StringBuffer {
     if (!hdr) {
       return nullptr;
     }
-    return ConstructInPlace(
-        hdr, aSize,
-        fromArena ? AllocProvenance::JsArena : AllocProvenance::PlainMalloc);
+    return ConstructInPlace(hdr, aSize, fromArena);
   }
 
   /**
@@ -99,20 +92,19 @@ class StringBuffer {
    *
    * @return the new StringBuffer header.
    */
-  // MONGODB MODIFICATION (SERVER-134946): aProvenance records whether aBuffer
-  // was allocated with a JS arena allocator so that Release() can balance the
-  // allocation. Callers passing an arena-allocated buffer must pass
-  // AllocProvenance::JsArena. There is intentionally no default: provenance
-  // cannot be inferred here, and guessing wrong breaks the allocator's
-  // accounting silently.
+  // MONGODB MODIFICATION (SERVER-134946): aFromArenaAllocator records whether
+  // aBuffer was allocated with a JS arena allocator so that Release() can
+  // balance the allocation. Callers passing an arena-allocated buffer must pass
+  // true. There is intentionally no default: provenance cannot be inferred
+  // here, and guessing wrong breaks the allocator's accounting silently.
   static already_AddRefed<StringBuffer> ConstructInPlace(
-      void* aBuffer, size_t aStorageSize, AllocProvenance aProvenance) {
+      void* aBuffer, size_t aStorageSize, bool aFromArenaAllocator) {
     MOZ_ASSERT(aBuffer, "must have a valid buffer");
     MOZ_ASSERT(aStorageSize != 0, "zero capacity StringBuffer not allowed");
     auto* hdr = new (aBuffer) StringBuffer();
     hdr->mRefCount = 1;
     hdr->mStorageSize = aStorageSize;
-    hdr->mFromArenaAllocator = aProvenance == AllocProvenance::JsArena;
+    hdr->mFromArenaAllocator = aFromArenaAllocator;
     detail::RefCountLogger::logAddRef(hdr, 1);
     return already_AddRefed(hdr);
   }
@@ -158,11 +150,9 @@ class StringBuffer {
    *
    * @see IsReadonly
    */
-  // MONGODB MODIFICATION (SERVER-134946): the arena parameter is now required (its
-  // default was removed) so callers must state the buffer's provenance explicitly, and
-  // it must match the provenance stored in the header (asserted below).
-  static StringBuffer* Realloc(StringBuffer* aHdr, size_t aSize,
-                               mozilla::Maybe<arena_id_t> aArena) {
+  static StringBuffer* Realloc(
+      StringBuffer* aHdr, size_t aSize,
+      mozilla::Maybe<arena_id_t> aArena = mozilla::Nothing()) {
     MOZ_ASSERT(aSize != 0, "zero capacity allocation not allowed");
     MOZ_ASSERT(sizeof(StringBuffer) + aSize <= size_t(uint32_t(-1)) &&
                    sizeof(StringBuffer) + aSize > aSize,
