@@ -13,7 +13,6 @@
 #define js_AllocPolicy_h
 
 #include "mozilla/MemoryReporting.h"  // For MallocSizeOf
-#include "mozilla/mozalloc.h"         // For InfallibleAllocPolicy
 
 #include "js/TypeDecls.h"
 #include "js/Utility.h"
@@ -347,12 +346,8 @@ class MallocAllocPolicy : public MallocAllocPolicyBase {
 
 } /* namespace js */
 
-class MOZ_EMPTY_BASES JSInfallibleAllocPolicy : public js::AllocPolicyBase,
-                                                public ::InfallibleAllocPolicy {
- public:
-  using ::InfallibleAllocPolicy::reportAllocOverflow;
-  // Simulated OOM is not supported.
-  using ::InfallibleAllocPolicy::checkSimulatedOOM;
-};
+/* MONGODB MODIFICATION: The cpp-only fork does not build mozalloc
+ * (memory/mozalloc), so JSInfallibleAllocPolicy and its mozilla/mozalloc.h
+ * dependency have been removed. */
 
 #endif /* js_AllocPolicy_h */
