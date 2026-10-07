@@ -70,6 +70,20 @@ BuiltinModuleFuncs* BuiltinModuleFuncs::singleton_ = nullptr;
   return true;
 }
 
+// MONGODB MODIFICATION: clang 19 at -O2 miscompiles the parameter arrays in
+// BuiltinModuleFuncs::init() below (observed on aarch64): the array
+// initialization is optimized away entirely and the Span built from the array
+// ends up referencing an unrelated stack slot, so wasm::Init() hashes garbage
+// ValTypes and segfaults. Escaping the array's address through asm with a
+// memory clobber forces clang to materialize and initialize the array.
+static inline void WasmBuiltinParamsCompilerBarrier(const void* ptr) {
+#if defined(__GNUC__) || defined(__clang__)
+  asm volatile("" : : "r"(ptr) : "memory");
+#else
+  (void)ptr;
+#endif
+}
+
 bool BuiltinModuleFuncs::init() {
   singleton_ = js_new<BuiltinModuleFuncs>();
   if (!singleton_) {
@@ -88,8 +102,16 @@ bool BuiltinModuleFuncs::init() {
     constexpr size_t numParams = DECLARE_BUILTIN_MODULE_FUNC_NUM_PARAMS_##op;  \
     mozilla::Span<const ValType> op##ParamsSpan;                               \
     if constexpr (numParams > 0) {                                             \
-      static const std::array<const ValType, numParams> op##Params(            \
+      /* MONGODB MODIFICATION: do not make this array a function-local static. */ \
+      /* The ValTypes reference canonical types from this init() call, which */ \
+      /* are freed by wasm::ShutDown -> PurgeCanonicalTypes. MongoDB runs */ \
+      /* repeated JS_Init/JS_ShutDown cycles (one per ScriptEngine), so a */ \
+      /* once-initialized static array would dangle on the next init(). */ \
+      /* The compiler barrier call is required: without it clang 19 at -O2 */ \
+      /* eliminates the array's initialization (see its comment above). */ \
+      const std::array<const ValType, numParams> op##Params(                   \
           DECLARE_BUILTIN_MODULE_FUNC_PARAM_VALTYPES_##op);                    \
+      WasmBuiltinParamsCompilerBarrier(op##Params.data());                     \
       op##ParamsSpan = mozilla::Span<const ValType>(op##Params);               \
     }                                                                          \
     if (!singleton_->funcs_[BuiltinModuleFuncId::op].init(                     \
