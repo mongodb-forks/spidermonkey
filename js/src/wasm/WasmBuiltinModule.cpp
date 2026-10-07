@@ -86,15 +86,24 @@ bool BuiltinModuleFuncs::init() {
   Maybe<ValType> op##Result = DECLARE_BUILTIN_MODULE_FUNC_RESULT_VALTYPE_##op; \
   {                                                                            \
     constexpr size_t numParams = DECLARE_BUILTIN_MODULE_FUNC_NUM_PARAMS_##op;  \
-    mozilla::Span<const ValType> op##ParamsSpan;                               \
+    /* MONGODB MODIFICATION: do not make this array a function-local static. */\
+    /* The ValTypes reference canonical types from this init() call, which */  \
+    /* are freed by wasm::ShutDown -> PurgeCanonicalTypes. MongoDB tests */    \
+    /* run repeated JS_Init/JS_ShutDown cycles, so a static array which is */  \
+    /* only initialized once would be stale on the next init(). */             \
     if constexpr (numParams > 0) {                                             \
-      static const std::array<const ValType, numParams> op##Params(            \
+      const std::array<const ValType, numParams> op##Params(                   \
           DECLARE_BUILTIN_MODULE_FUNC_PARAM_VALTYPES_##op);                    \
-      op##ParamsSpan = mozilla::Span<const ValType>(op##Params);               \
+      const mozilla::Span<const ValType> op##ParamsSpan(op##Params);           \
+      if (!singleton_->funcs_[BuiltinModuleFuncId::op].init(                   \
+              types, op##ParamsSpan, op##Result, uses_memory, &SASig##sa_name, \
+              inline_op, export)) {                                            \
+        return false;                                                          \
+      }                                                                        \
     }                                                                          \
-    if (!singleton_->funcs_[BuiltinModuleFuncId::op].init(                     \
-            types, op##ParamsSpan, op##Result, uses_memory, &SASig##sa_name,   \
-            inline_op, export)) {                                              \
+    else if (!singleton_->funcs_[BuiltinModuleFuncId::op].init(                \
+            types, mozilla::Span<const ValType>(), op##Result, uses_memory,    \
+            &SASig##sa_name, inline_op, export)) {                             \
       return false;                                                            \
     }                                                                          \
   }
