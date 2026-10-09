@@ -4870,12 +4870,17 @@ GeneralParser<ParseHandler, Unit>::declarationList(
 
     Node binding;
     if (tt == TokenKind::LeftBracket || tt == TokenKind::LeftCurly) {
+// MONGODB MODIFICATION: guard the Using/AwaitUsing early-error check. Upstream
+// forgot this #ifdef, so --disable-explicit-resource-management (which removes
+// the Using/AwaitUsing enumerators from DeclarationKind) fails to compile.
+#ifdef ENABLE_EXPLICIT_RESOURCE_MANAGEMENT
       if (declKind == DeclarationKind::Using ||
           declKind == DeclarationKind::AwaitUsing) {
         MOZ_ASSERT(!initialDeclaration);
         error(JSMSG_NO_DESTRUCT_IN_USING);
         return errorResult();
       }
+#endif
       binding = MOZ_TRY(declarationPattern(declKind, tt, initialDeclaration,
                                            yieldHandling, forHeadKind,
                                            forInOrOfExpression));
