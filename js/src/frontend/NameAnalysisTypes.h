@@ -389,8 +389,13 @@ class NameLocation {
   bool isLexical() const { return BindingKindIsLexical(bindingKind()); }
 
   bool isConst() const {
-    return bindingKind() == BindingKind::Const ||
-           bindingKind() == BindingKind::Using;
+    // MONGODB MODIFICATION: guard the BindingKind::Using case so that
+    // --disable-explicit-resource-management can compile.
+    return bindingKind() == BindingKind::Const
+#ifdef ENABLE_EXPLICIT_RESOURCE_MANAGEMENT
+           || bindingKind() == BindingKind::Using
+#endif
+        ;
   }
 
   bool isSynthetic() const { return bindingKind() == BindingKind::Synthetic; }
