@@ -284,7 +284,12 @@ struct MaybeStorage<T, true> : MaybeStorageBase<T> {
  protected:
   char mIsSome = false;  // not bool -- guarantees minimal space consumption
   // Make the padding explicit to help compiler optimization.
-  char padding[alignof(MaybeStorageBase<T>) - sizeof(char)] = {};
+  // MONGODB MODIFICATION: Avoid zero-sized array since MSVC rejects it
+  static constexpr size_t kPaddingSize =
+      alignof(MaybeStorageBase<T>) > sizeof(char)
+          ? alignof(MaybeStorageBase<T>) - sizeof(char)
+          : 1;
+  char padding[kPaddingSize] = {};
 
   constexpr MaybeStorage() = default;
   constexpr explicit MaybeStorage(const T& aVal)
