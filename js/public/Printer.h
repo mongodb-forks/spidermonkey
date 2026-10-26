@@ -331,11 +331,20 @@ class FixedBufferPrinter final : public GenericPrinter {
   size_t size_;
 
  public:
+#ifdef _MSC_VER
+  // MSVC rejects a constexpr function that cannot result in a constant
+  // expression, and memset is not constexpr on MSVC.
+  FixedBufferPrinter(char* buf, size_t size) : buffer_(buf), size_(size) {
+    MOZ_ASSERT(buffer_);
+    memset(buffer_, 0, size_);
+  }
+#else
   constexpr FixedBufferPrinter(char* buf, size_t size)
       : buffer_(buf), size_(size) {
     MOZ_ASSERT(buffer_);
     memset(buffer_, 0, size_);
   }
+#endif
 
   // Puts |len| characters from |s| at the current position.
   // If the buffer fills up, this won't do anything.
