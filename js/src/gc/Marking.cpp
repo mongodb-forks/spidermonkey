@@ -897,7 +897,14 @@ template <typename T>
 bool MarkingTracerT<opts>::onEdge(T** thingp, const char* name) {
   T* thing;
   if constexpr (bool(opts & MarkingOptions::ConcurrentMarking)) {
+#ifdef _MSC_VER
+    // MONGODB MODIFICATION: On MSVC, fall back to non-atomic accesses.
+    // Atomic built-ins were added to improve TSAN output, but the logic
+    // does not rely on atomic synchronization.
+    thing = *thingp;
+#else
     thing = __atomic_load_n(thingp, __ATOMIC_RELAXED);
+#endif
   } else {
     thing = *thingp;
   }

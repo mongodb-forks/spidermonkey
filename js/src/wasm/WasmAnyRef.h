@@ -355,10 +355,21 @@ class AnyRef {
 
   // Relaxed atomic load and store operations on an AnyRef.
   AnyRef atomicGet() const {
+#ifdef _MSC_VER
+    // MONGODB MODIFICATION: On MSVC, fall back to non-atomic accesses.
+    // Atomic built-ins were added to improve TSAN output, but the logic
+    // does not rely on atomic synchronization.
+    return AnyRef(value_);
+#else
     return AnyRef(__atomic_load_n(&value_, __ATOMIC_RELAXED));
+#endif
   }
   void atomicSet(const AnyRef& other) {
+#ifdef _MSC_VER
+    value_ = other.value_;
+#else
     __atomic_store_n(&value_, other.value_, __ATOMIC_RELAXED);
+#endif
   }
 
   // Internal details of the boxing format used by WasmStubs.cpp

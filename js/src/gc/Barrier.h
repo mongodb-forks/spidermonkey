@@ -377,10 +377,21 @@ struct AtomicMethods {};
 template <typename T>
 struct AtomicMethods<T*> {
   static T* atomicGet(T* const* vp) {
+#ifdef _MSC_VER
+    // MONGODB MODIFICATION: On MSVC, fall back to non-atomic accesses.
+    // Atomic built-ins were added to improve TSAN output, but the logic
+    // does not rely on atomic synchronization.
+    return *vp;
+#else
     return __atomic_load_n(vp, __ATOMIC_RELAXED);
+#endif
   }
   static void atomicSet(T** vp, T* v) {
+#ifdef _MSC_VER
+    *vp = v;
+#else
     __atomic_store_n(vp, v, __ATOMIC_RELAXED);
+#endif
   }
 };
 
@@ -388,10 +399,21 @@ template <typename T>
   requires std::integral<T> && (!std::same_as<T, bool>)
 struct AtomicMethods<T> {
   static T atomicGet(T const* vp) {
+#ifdef _MSC_VER
+    // MONGODB MODIFICATION: On MSVC, fall back to non-atomic accesses.
+    // Atomic built-ins were added to improve TSAN output, but the logic
+    // does not rely on atomic synchronization.
+    return *vp;
+#else
     return __atomic_load_n(vp, __ATOMIC_RELAXED);
+#endif
   }
   static void atomicSet(T* vp, T v) {
+#ifdef _MSC_VER
+    *vp = v;
+#else
     __atomic_store_n(vp, v, __ATOMIC_RELAXED);
+#endif
   }
 };
 

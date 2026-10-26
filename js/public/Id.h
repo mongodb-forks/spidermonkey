@@ -209,10 +209,21 @@ class PropertyKey {
 
   // Relaxed atomic load and store operations on a PropertyKey.
   PropertyKey atomicGet() const {
+#ifdef _MSC_VER
+    // MONGODB MODIFICATION: On MSVC, fall back to non-atomic accesses.
+    // Atomic built-ins were added to improve TSAN output, but the logic
+    // does not rely on atomic synchronization.
+    return fromRawBits(asBits_);
+#else
     return fromRawBits(__atomic_load_n(&asBits_, __ATOMIC_RELAXED));
+#endif
   }
   void atomicSet(const PropertyKey& other) {
+#ifdef _MSC_VER
+    asBits_ = other.asBits_;
+#else
     __atomic_store_n(&asBits_, other.asBits_, __ATOMIC_RELAXED);
+#endif
   }
 
 #if defined(DEBUG) || defined(JS_JITSPEW)

@@ -738,10 +738,21 @@ class Value {
 #if JS_BITS_PER_WORD == 64
   // Relaxed atomic load and store operations on a Value.
   Value atomicGet() const {
+#ifdef _MSC_VER
+    // MONGODB MODIFICATION: On MSVC, fall back to non-atomic accesses.
+    // Atomic built-ins were added to improve TSAN output, but the logic
+    // does not rely on atomic synchronization.
+    return fromRawBits(asBits_);
+#else
     return fromRawBits(__atomic_load_n(&asBits_, __ATOMIC_RELAXED));
+#endif
   }
   void atomicSet(const Value& value) {
+#ifdef _MSC_VER
+    asBits_ = value.asBits_;
+#else
     __atomic_store_n(&asBits_, value.asBits_, __ATOMIC_RELAXED);
+#endif
   }
 #endif
 

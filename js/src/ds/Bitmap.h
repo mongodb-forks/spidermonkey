@@ -13,6 +13,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
+
 #include "js/AllocPolicy.h"
 #include "js/HashTable.h"
 #include "js/HeapAPI.h"
@@ -158,7 +162,14 @@ class SparseBitmap {
     BitBlock* block = readonlyThreadsafeGetBlock(blockWord / WordsInBlock);
     MOZ_ASSERT(block);
     uintptr_t* ptr = &(*block)[word - blockWord];
+#ifdef _MSC_VER
+    // MONGODB MODIFICATION: MSVC doesn't support GCC's atomic builtins; use 
+    // the Interlocked intrinsic for an atomic read-modify-write.
+    _InterlockedOr64(reinterpret_cast<volatile __int64*>(ptr),
+                     static_cast<__int64>(bitMask(bit)));
+#else
     __atomic_fetch_or(ptr, bitMask(bit), __ATOMIC_RELAXED);
+#endif
   }
 
   bool getBit(size_t bit) const;

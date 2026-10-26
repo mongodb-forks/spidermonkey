@@ -43,10 +43,21 @@ class TaggedProto {
 
   // Relaxed atomic load and store operations on a TaggedProto.
   TaggedProto atomicGet() const {
+#ifdef _MSC_VER
+    // MONGODB MODIFICATION: On MSVC, fall back to non-atomic accesses.
+    // Atomic built-ins were added to improve TSAN output, but the logic
+    // does not rely on atomic synchronization.
+    return TaggedProto(proto);
+#else
     return TaggedProto(__atomic_load_n(&proto, __ATOMIC_RELAXED));
+#endif
   }
   void atomicSet(const TaggedProto& other) {
+#ifdef _MSC_VER
+    proto = other.proto;
+#else
     __atomic_store_n(&proto, other.proto, __ATOMIC_RELAXED);
+#endif
   }
 
   bool operator==(const TaggedProto& other) const {
