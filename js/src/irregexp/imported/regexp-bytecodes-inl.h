@@ -215,9 +215,14 @@ class BytecodeOperandsBase : public BytecodeOperandNames<bc> {
   // above is essentially a constant.
   template <typename Func>
   static constexpr void ForEachOperand(Func&& f) {
+    // MSVC fails to expand the pack when the pattern accesses a member of
+    // each pack element, so extract the operand values through the tuple
+    // element type instead (same approach as ForEachOperandWithIndex below).
     constexpr auto filtered_ops = GetOperandsTuple();
-    std::apply([&](auto... ops) { (..., f.template operator()<ops.value>()); },
-               filtered_ops);
+    [&]<size_t... I>(std::index_sequence<I...>) {
+      (..., f.template operator()<
+           std::tuple_element_t<I, decltype(filtered_ops)>::value>());
+    }(std::make_index_sequence<std::tuple_size_v<decltype(filtered_ops)>>{});
   }
 
   // Similar to ForEachOperand, but additionally provides the current index as
