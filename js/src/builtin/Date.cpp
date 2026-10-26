@@ -1133,7 +1133,13 @@ static bool ParseISOStyleDate(const CharT* s, size_t length,
   // in front attribute position, but that's a C++23 extension.
   // The old `__attribute__((always_inline))` syntax can be applied in back
   // attribute position, so it's usable even in C++20.
+#ifdef _MSC_VER
+// MSVC doesn't support attributes in the back attribute position of lambdas;
+// always-inlining is an optimization that can be skipped.
+#define JS_ALWAYS_INLINE_LAMBDA
+#else
 #define JS_ALWAYS_INLINE_LAMBDA __attribute__((always_inline))
+#endif
 
   // Current index into |s|.
   size_t index = 0;
