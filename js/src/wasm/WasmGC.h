@@ -76,11 +76,15 @@ struct StackMapHeader {
   // gets a stackmap.
   uint32_t hasDebugFrameWithLiveRefs : 1;
 
-  WASM_CHECK_CACHEABLE_POD(numMappedWords,
+  // MSVC does not support conditional compilation directives inside macro
+  // arguments, so spell out each configuration.
 #ifdef DEBUG
-                           numExitStubWords,
-#endif
+  WASM_CHECK_CACHEABLE_POD(numMappedWords, numExitStubWords,
                            frameOffsetFromTop, hasDebugFrameWithLiveRefs);
+#else
+  WASM_CHECK_CACHEABLE_POD(numMappedWords, frameOffsetFromTop,
+                           hasDebugFrameWithLiveRefs);
+#endif
 
   static constexpr uint32_t maxMappedWords = (1 << MappedWordsBits) - 1;
   static constexpr uint32_t maxExitStubWords = (1 << ExitStubWordsBits) - 1;
