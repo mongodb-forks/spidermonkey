@@ -28,6 +28,9 @@ using namespace js;
 #  else
 #    error "Can't handle mixed-endian architectures"
 #  endif
+#elif defined(_MSC_VER)
+// MSVC only targets little-endian architectures.
+#  define IEEE_8087
 #else
 #  error "Don't know how to determine endianness"
 #endif
