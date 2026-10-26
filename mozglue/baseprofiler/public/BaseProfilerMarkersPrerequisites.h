@@ -1187,9 +1187,15 @@ struct InputTypeToCpp<MarkerSchema::InputType::Flow> {
   using Type = Flow;
 };
 
+// MSVC fails to expand the parameter pack when the pattern indexes into
+// T::PayloadFields directly, so route through an intermediate alias.
+template <typename T, size_t I>
+using PayloadFieldCppType =
+    typename InputTypeToCpp<T::PayloadFields[I].InputTy>::Type;
+
 template <typename T, size_t... Is>
-auto PayloadFieldsTupleHelper(std::index_sequence<Is...>) -> std::tuple<
-    typename InputTypeToCpp<T::PayloadFields[Is].InputTy>::Type...>;
+auto PayloadFieldsTupleHelper(std::index_sequence<Is...>)
+    -> std::tuple<PayloadFieldCppType<T, Is>...>;
 
 template <typename T>
 using PayloadFieldsTuple = decltype(PayloadFieldsTupleHelper<T>(
