@@ -77,6 +77,15 @@ namespace mozilla {
  */
 template <typename T>
 constexpr T byteswap(T n) {
+#ifdef _MSC_VER
+  if constexpr (sizeof(T) == 2) {
+    return _byteswap_ushort(n);
+  } else if constexpr (sizeof(T) == 4) {
+    return _byteswap_ulong(n);
+  } else if constexpr (sizeof(T) == 8) {
+    return _byteswap_uint64(n);
+  }
+#else
   if constexpr (sizeof(T) == 2) {
     return __builtin_bswap16(n);
   } else if constexpr (sizeof(T) == 4) {
@@ -84,6 +93,7 @@ constexpr T byteswap(T n) {
   } else if constexpr (sizeof(T) == 8) {
     return __builtin_bswap64(n);
   }
+#endif
 }
 
 namespace detail {
