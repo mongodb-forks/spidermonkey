@@ -114,7 +114,7 @@ bool jit::EliminateBoundsChecks(const MIRGenerator* mir, MIRGraph& graph) {
         // Eliminate bounds checks that are dominated by another bounds check of
         // the same value.
 
-        LastCheckedKey key = (LastCheckedKey){
+        LastCheckedKey key{
             .target = bc->target(),
             .targetIndex = bc->targetIndex(),
             .addressID = addr->id(),
