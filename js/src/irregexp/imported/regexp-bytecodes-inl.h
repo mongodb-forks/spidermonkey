@@ -160,7 +160,12 @@ struct BytecodeOperandNames;
     static constexpr size_t kCount = detail::CountOf<UNPAREN(OpNames)>(); \
     static constexpr auto kNames = detail::SplitNames<kCount>(#OpNames);  \
     static constexpr std::string_view Name(Operand op) {                  \
-      return kNames[static_cast<size_t>(op)];                             \
+      /* MSVC rejects the empty std::array's non-constexpr operator[]. */ \
+      if constexpr (kCount == 0) {                                        \
+        return {};                                                        \
+      } else {                                                            \
+        return kNames[static_cast<size_t>(op)];                           \
+      }                                                                   \
     }                                                                     \
   };
 REGEXP_BYTECODE_LIST(DECLARE_OPERAND_NAMES)
