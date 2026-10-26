@@ -202,7 +202,11 @@ MOZ_ReportAssertionFailure(const char* aStr, const char* aFilename,
  * should use MOZ_MAKE_COMPILER_ASSUME_IS_UNREACHABLE because it has extra
  * asserts.
  */
+#ifdef _MSC_VER
+#define MOZ_ASSUME_UNREACHABLE_MARKER() __assume(0)
+#else
 #define MOZ_ASSUME_UNREACHABLE_MARKER() __builtin_unreachable()
+#endif
 
 /**
  * MOZ_REALLY_CRASH is used in the implementation of MOZ_CRASH().  You should
