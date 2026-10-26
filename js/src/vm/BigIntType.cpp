@@ -3740,7 +3740,8 @@ bool BigInt::equal(const BigInt* lhs, double rhs) {
 
 JS::Result<bool> BigInt::equal(JSContext* cx, Handle<BigInt*> lhs,
                                HandleString rhs) {
-  BigInt* rhsBigInt = MOZ_TRY(StringToBigInt(cx, rhs));
+  BigInt* rhsBigInt{};
+  MOZ_TRY_VAR(rhsBigInt, (StringToBigInt(cx, rhs)));
   if (!rhsBigInt) {
     return false;
   }
