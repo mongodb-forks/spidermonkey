@@ -852,12 +852,18 @@ DEFINE_BARRIERED_PTR(PreBarriered, gc::BarrierOption_PreWriteBarrier);
  * implemented by js::HeapPtr<T> or JS::Heap<T> at the cost of not
  * automatically handling deletion or movement.
  */
-DEFINE_BARRIERED_PTR(GCPtr, gc::BarrierOption_PreWriteBarrier |
-                                gc::BarrierOption_PostWriteBarrier |
+// MSVC does not support conditional compilation directives inside macro
+// arguments, so compute the options before invoking the macro.
 #ifdef JS_GC_CONCURRENT_MARKING
-                                gc::BarrierOption_AtomicWrites |
+constexpr uint32_t kGCPtrBarrierOptions =
+    gc::BarrierOption_PreWriteBarrier | gc::BarrierOption_PostWriteBarrier |
+    gc::BarrierOption_AtomicWrites | gc::BarrierOption_HasGCLifetime;
+#else
+constexpr uint32_t kGCPtrBarrierOptions =
+    gc::BarrierOption_PreWriteBarrier | gc::BarrierOption_PostWriteBarrier |
+    gc::BarrierOption_HasGCLifetime;
 #endif
-                                gc::BarrierOption_HasGCLifetime);
+DEFINE_BARRIERED_PTR(GCPtr, kGCPtrBarrierOptions);
 
 /*
  * A pre- and post-barriered heap pointer, for use inside the JS engine. These
