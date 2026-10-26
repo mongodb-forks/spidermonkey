@@ -434,9 +434,16 @@ JS_PUBLIC_API bool js::NukeCrossCompartmentWrappers(
          target->compartment() == c.get() && NukedAllRealms(c.get()));
 
     // Iterate only the wrappers that have target compartment matched unless
-    // |nukeAll| is true.
-    auto iter = !nukeAll ? c->objectWrapperMappingsTo(target->compartment())
-                         : c->objectWrapperMappings();
+    // |nukeAll| is true. ModIterator is neither copyable nor movable, and
+    // MSVC doesn't materialize a conditional expression's result directly,
+    // so use an immediately-invoked lambda whose return statements are
+    // eligible for guaranteed copy elision.
+    auto iter = [&]() -> js::ObjectWrapperMap::ModIterator {
+      if (!nukeAll) {
+        return c->objectWrapperMappingsTo(target->compartment());
+      }
+      return c->objectWrapperMappings();
+    }();
     if (nukeAll) {
       c.get()->nukedOutgoingWrappers = true;
     }
