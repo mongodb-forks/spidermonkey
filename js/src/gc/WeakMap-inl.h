@@ -12,6 +12,13 @@
 #include <algorithm>
 #include <type_traits>
 
+// MSVC requires complete types for the is_base_of checks that get
+// instantiated for the debugger's weak maps (see also the equivalent fix in
+// CrossCompartmentWrapper.cpp).
+#include "debugger/Environment.h"
+#include "debugger/Frame.h"
+#include "debugger/Script.h"
+#include "debugger/Source.h"
 #include "gc/GCLock.h"
 #include "gc/Marking.h"
 #include "gc/Zone.h"
