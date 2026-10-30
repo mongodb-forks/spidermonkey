@@ -849,7 +849,7 @@ bool js::HostLoadImportedModule(JSContext* cx, Handle<JSScript*> referrer,
   JS::ModuleLoadHook moduleLoadHook = cx->runtime()->moduleLoadHook;
   if (!moduleLoadHook) {
     JS_ReportErrorASCII(cx, "Module load hook not set");
-    return false;
+    return JS::FinishLoadingImportedModuleFailedWithPendingException(cx, payload);
   }
 
   bool ok = moduleLoadHook(cx, referrer, moduleRequest, hostDefined, payload,
